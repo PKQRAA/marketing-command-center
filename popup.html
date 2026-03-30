@@ -26,8 +26,8 @@
     
     body {
       width: 420px;
-      min-height: 600px;
-      max-height: 700px;
+      min-height: 650px;
+      max-height: 750px;
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
@@ -39,17 +39,13 @@
     /* Header */
     .header {
       background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 50%, var(--accent-3) 100%);
-      padding: 16px 20px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
     
     .logo {
       width: 32px;
@@ -63,25 +59,10 @@
       font-size: 16px;
     }
     
-    .header h1 {
-      font-size: 16px;
-      font-weight: 600;
-    }
+    .header h1 { font-size: 15px; font-weight: 600; }
+    .header-url { font-size: 9px; opacity: 0.8; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     
-    .header-url {
-      font-size: 10px;
-      opacity: 0.8;
-      max-width: 200px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    .header-actions {
-      display: flex;
-      gap: 8px;
-    }
-    
+    .header-actions { display: flex; gap: 6px; }
     .icon-btn {
       width: 28px;
       height: 28px;
@@ -95,27 +76,25 @@
       color: white;
       transition: all 0.2s;
     }
-    
     .icon-btn:hover { background: rgba(255,255,255,0.25); }
     .icon-btn svg { width: 14px; height: 14px; }
     
-    /* Quick Stats Bar */
+    /* Stats Bar */
     .stats-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 1px;
       background: var(--border);
-      border-bottom: 1px solid var(--border);
     }
     
     .stat-item {
       background: var(--bg-secondary);
-      padding: 10px 8px;
+      padding: 8px 6px;
       text-align: center;
     }
     
     .stat-value {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       background: linear-gradient(135deg, var(--accent-1), var(--accent-4));
       -webkit-background-clip: text;
@@ -123,15 +102,9 @@
       background-clip: text;
     }
     
-    .stat-label {
-      font-size: 9px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
-    }
+    .stat-label { font-size: 8px; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
     
-    /* Module Tabs */
+    /* Tabs */
     .module-tabs {
       display: flex;
       background: var(--bg-secondary);
@@ -139,12 +112,11 @@
       overflow-x: auto;
       scrollbar-width: none;
     }
-    
     .module-tabs::-webkit-scrollbar { display: none; }
     
     .module-tab {
-      padding: 10px 14px;
-      font-size: 11px;
+      padding: 8px 10px;
+      font-size: 10px;
       font-weight: 500;
       color: var(--text-muted);
       cursor: pointer;
@@ -153,25 +125,22 @@
       transition: all 0.2s;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
-    
     .module-tab:hover { color: var(--text-secondary); background: var(--bg-tertiary); }
     .module-tab.active { color: var(--accent-1); border-bottom-color: var(--accent-1); }
-    .module-tab svg { width: 14px; height: 14px; }
+    .module-tab svg { width: 12px; height: 12px; }
     
-    /* Content Area */
+    /* Content */
     .content {
       flex: 1;
       overflow-y: auto;
-      padding: 12px;
+      padding: 10px;
     }
-    
-    .content::-webkit-scrollbar { width: 6px; }
+    .content::-webkit-scrollbar { width: 5px; }
     .content::-webkit-scrollbar-track { background: var(--bg-secondary); }
     .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
     
-    /* Module Container */
     .module { display: none; }
     .module.active { display: block; }
     
@@ -180,39 +149,19 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 14px;
+      padding: 12px;
       margin-bottom: 10px;
     }
-    
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    
-    .card-title {
-      font-size: 13px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .card-badge {
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 10px;
-      background: var(--accent-1);
-      color: white;
-    }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .card-title { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .card-badge { font-size: 8px; padding: 2px 6px; border-radius: 10px; background: var(--accent-1); color: white; }
     
     /* Buttons */
     .btn {
-      padding: 8px 16px;
+      padding: 8px 14px;
       border: none;
       border-radius: 8px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
@@ -220,50 +169,38 @@
       gap: 6px;
       transition: all 0.2s;
     }
-    
-    .btn svg { width: 14px; height: 14px; }
+    .btn svg { width: 13px; height: 13px; }
     .btn-primary { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: white; }
-    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:hover { opacity: 0.9; }
     .btn-secondary { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); }
     .btn-secondary:hover { background: var(--bg-secondary); }
-    .btn-sm { padding: 5px 10px; font-size: 10px; }
+    .btn-sm { padding: 4px 8px; font-size: 9px; }
     
-    /* Action Bar */
-    .action-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    
+    .action-bar { display: flex; gap: 6px; margin-bottom: 10px; }
     .action-bar .btn { flex: 1; justify-content: center; }
     
     /* List Items */
-    .item-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    .item-list { display: flex; flex-direction: column; gap: 5px; }
     
     .list-item {
       background: var(--bg-secondary);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 8px 10px;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    
     .list-item:hover { border-color: var(--accent-1); background: var(--bg-tertiary); }
     
     .item-content { flex: 1; min-width: 0; }
-    .item-type { font-size: 9px; text-transform: uppercase; color: var(--accent-1); font-weight: 600; }
-    .item-text { font-size: 12px; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .item-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .item-type { font-size: 8px; text-transform: uppercase; color: var(--accent-1); font-weight: 600; }
+    .item-text { font-size: 11px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .item-meta { font-size: 9px; color: var(--text-muted); margin-top: 1px; }
     
-    .item-actions { display: flex; gap: 4px; }
+    .item-actions { display: flex; gap: 4px; margin-left: 8px; }
     .item-btn {
       width: 24px;
       height: 24px;
@@ -278,90 +215,87 @@
       transition: all 0.2s;
     }
     .item-btn:hover { background: var(--accent-1); color: white; }
-    .item-btn svg { width: 12px; height: 12px; }
+    .item-btn svg { width: 11px; height: 11px; }
     
-    /* Score Circle */
+    /* Progress */
+    .progress-item { margin-bottom: 10px; }
+    .progress-header { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; }
+    .progress-bar { height: 5px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+    
+    /* Score */
     .score-circle {
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 16px;
-      font-size: 28px;
+      margin: 0 auto 12px;
+      font-size: 24px;
       font-weight: 700;
+      color: white;
     }
-    
     .score-good { background: linear-gradient(135deg, #22c55e, #16a34a); }
     .score-medium { background: linear-gradient(135deg, #eab308, #ca8a04); }
     .score-bad { background: linear-gradient(135deg, #ef4444, #dc2626); }
     
-    /* Progress Bars */
-    .progress-item {
-      margin-bottom: 12px;
-    }
-    
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      margin-bottom: 6px;
-    }
-    
-    .progress-bar {
-      height: 6px;
-      background: var(--bg-secondary);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    
-    .progress-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.5s ease;
-    }
-    
     /* Heatmap Controls */
-    .heatmap-controls {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-    
+    .heatmap-controls { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
     .heatmap-toggle {
-      padding: 6px 12px;
+      padding: 5px 10px;
       border: 1px solid var(--border);
       background: var(--bg-secondary);
       border-radius: 6px;
-      font-size: 10px;
+      font-size: 9px;
       cursor: pointer;
       color: var(--text-secondary);
       transition: all 0.2s;
     }
+    .heatmap-toggle.active { background: var(--accent-1); border-color: var(--accent-1); color: white; }
     
-    .heatmap-toggle.active {
-      background: var(--accent-1);
-      border-color: var(--accent-1);
-      color: white;
+    /* Grid */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
+    
+    /* Mini Stats */
+    .stat-mini { text-align: center; padding: 6px; background: var(--bg-secondary); border-radius: 6px; }
+    .stat-mini-val { display: block; font-size: 14px; font-weight: 700; color: var(--accent-1); }
+    .stat-mini-label { font-size: 8px; color: var(--text-muted); text-transform: uppercase; }
+    
+    /* Keywords */
+    .keyword-tag {
+      display: inline-block;
+      background: var(--bg-secondary);
+      padding: 3px 8px;
+      border-radius: 12px;
+      margin: 2px;
+      font-size: 10px;
     }
+    .keyword-count { color: var(--accent-1); font-weight: 600; }
     
-    /* Grid Layout */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    /* Empty State */
+    .empty-state { text-align: center; padding: 24px 16px; color: var(--text-muted); }
+    .empty-state svg { width: 40px; height: 40px; opacity: 0.3; margin-bottom: 8px; }
+    .empty-state p { font-size: 11px; }
+    
+    /* Saved Section */
+    .saved-section { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px; }
+    .saved-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .saved-title { font-size: 10px; font-weight: 600; color: var(--text-secondary); }
     
     /* Toast */
     .toast {
       position: fixed;
-      bottom: 70px;
+      bottom: 60px;
       left: 50%;
       transform: translateX(-50%) translateY(20px);
       background: var(--success);
       color: var(--bg-primary);
-      padding: 10px 20px;
+      padding: 8px 16px;
       border-radius: 8px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 500;
       opacity: 0;
       transition: all 0.3s;
@@ -369,49 +303,19 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 30px 20px;
-      color: var(--text-muted);
-    }
-    
-    .empty-state svg { width: 48px; height: 48px; opacity: 0.3; margin-bottom: 12px; }
-    .empty-state p { font-size: 12px; }
-    
-    /* Saved Items */
-    .saved-section {
-      border-top: 1px solid var(--border);
-      margin-top: 12px;
-      padding-top: 12px;
-    }
-    
-    .saved-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    
-    .saved-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-secondary);
-    }
-    
     /* Footer */
     .footer {
-      padding: 10px 12px;
+      padding: 8px 10px;
       background: var(--bg-secondary);
       border-top: 1px solid var(--border);
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
-    
-    .footer .btn { flex: 1; justify-content: center; }
+    .footer .btn { flex: 1; justify-content: center; font-size: 10px; padding: 6px 10px; }
   </style>
 </head>
 <body>
+  <!-- Header -->
   <div class="header">
     <div class="header-left">
       <div class="logo">M</div>
@@ -421,19 +325,16 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" onclick="exportData()" title="Export">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-        </svg>
+      <button class="icon-btn" data-action="exportData" title="Export">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       </button>
-      <button class="icon-btn" onclick="clearAll()" title="Clear">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-        </svg>
+      <button class="icon-btn" data-action="clearAll" title="Clear">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
       </button>
     </div>
   </div>
   
+  <!-- Stats Bar -->
   <div class="stats-bar">
     <div class="stat-item">
       <div class="stat-value" id="statCtas">0</div>
@@ -453,6 +354,7 @@
     </div>
   </div>
   
+  <!-- Module Tabs -->
   <div class="module-tabs">
     <div class="module-tab active" data-module="dashboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -460,7 +362,7 @@
     </div>
     <div class="module-tab" data-module="cta-spy">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg>
-      CTA Spy
+      CTAs
     </div>
     <div class="module-tab" data-module="email-finder">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
@@ -474,21 +376,26 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
       Prices
     </div>
-    <div class="module-tab" data-module="heatmap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      Heatmap
+    <div class="module-tab" data-module="social">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Social
+    </div>
+    <div class="module-tab" data-module="links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+      Links
     </div>
     <div class="module-tab" data-module="tracker">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Tracker
     </div>
   </div>
   
+  <!-- Content -->
   <div class="content">
-    <!-- Dashboard Module -->
+    <!-- Dashboard -->
     <div class="module active" id="module-dashboard">
       <div class="action-bar">
-        <button class="btn btn-primary" onclick="scanAll()">
+        <button class="btn btn-primary" data-action="scanAll">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
           Full Scan
         </button>
@@ -502,17 +409,17 @@
         <div class="grid-2">
           <div>
             <div class="progress-item">
-              <div class="progress-header"><span>CTAs Found</span><span id="dashCtas">0</span></div>
+              <div class="progress-header"><span>CTAs</span><span id="dashCtas">0</span></div>
               <div class="progress-bar"><div class="progress-fill" id="dashCtasBar" style="width:0%;background:linear-gradient(90deg,#6366f1,#8b5cf6)"></div></div>
             </div>
             <div class="progress-item">
-              <div class="progress-header"><span>Emails Found</span><span id="dashEmails">0</span></div>
+              <div class="progress-header"><span>Emails</span><span id="dashEmails">0</span></div>
               <div class="progress-bar"><div class="progress-fill" id="dashEmailsBar" style="width:0%;background:linear-gradient(90deg,#14b8a6,#22c55e)"></div></div>
             </div>
           </div>
           <div>
             <div class="progress-item">
-              <div class="progress-header"><span>Prices Found</span><span id="dashPrices">0</span></div>
+              <div class="progress-header"><span>Prices</span><span id="dashPrices">0</span></div>
               <div class="progress-bar"><div class="progress-fill" id="dashPricesBar" style="width:0%;background:linear-gradient(90deg,#f59e0b,#eab308)"></div></div>
             </div>
             <div class="progress-item">
@@ -524,90 +431,80 @@
       </div>
       
       <div class="card">
-        <div class="card-header">
-          <span class="card-title">Quick Actions</span>
-        </div>
+        <div class="card-header"><span class="card-title">Quick Actions</span></div>
         <div class="grid-2">
-          <button class="btn btn-secondary" onclick="switchModule('cta-spy')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg>
-            Copy CTAs
-          </button>
-          <button class="btn btn-secondary" onclick="switchModule('email-finder')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/></svg>
-            Find Emails
-          </button>
-          <button class="btn btn-secondary" onclick="switchModule('prices')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="1" x2="12" y2="23"/></svg>
-            Extract Prices
-          </button>
-          <button class="btn btn-secondary" onclick="switchModule('seo')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/></svg>
-            SEO Analysis
-          </button>
+          <button class="btn btn-secondary" data-action="switchModule" data-param="cta-spy">CTAs</button>
+          <button class="btn btn-secondary" data-action="switchModule" data-param="email-finder">Emails</button>
+          <button class="btn btn-secondary" data-action="switchModule" data-param="prices">Prices</button>
+          <button class="btn btn-secondary" data-action="switchModule" data-param="seo">SEO</button>
         </div>
       </div>
     </div>
     
-    <!-- CTA Spy Module -->
+    <!-- CTA Spy -->
     <div class="module" id="module-cta-spy">
       <div class="action-bar">
-        <button class="btn btn-primary" onclick="scanCTAs()">
+        <button class="btn btn-primary" data-action="scanCTAs">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/></svg>
-          Scan CTAs
+          Scan
         </button>
-        <button class="btn btn-secondary" onclick="copyAllCTAs()">Copy All</button>
+        <button class="btn btn-secondary" data-action="copyAllCTAs">Copy All</button>
       </div>
       <div class="item-list" id="ctaList"></div>
       <div class="saved-section" id="savedCtasSection" style="display:none">
         <div class="saved-header">
           <span class="saved-title">Saved CTAs</span>
-          <button class="btn btn-sm btn-secondary" onclick="clearSaved('ctas')">Clear</button>
+          <button class="btn btn-sm btn-secondary" data-action="clearSavedCtas">Clear</button>
         </div>
         <div class="item-list" id="savedCtas"></div>
       </div>
     </div>
     
-    <!-- Email Finder Module -->
+    <!-- Email Finder -->
     <div class="module" id="module-email-finder">
       <div class="action-bar">
-        <button class="btn btn-primary" onclick="scanEmails()">
+        <button class="btn btn-primary" data-action="scanEmails">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/></svg>
-          Find Emails
+          Find
         </button>
-        <button class="btn btn-secondary" onclick="copyAllEmails()">Copy All</button>
+        <button class="btn btn-secondary" data-action="copyAllEmails">Copy All</button>
       </div>
       <div class="item-list" id="emailList"></div>
     </div>
     
-    <!-- SEO Module -->
+    <!-- SEO -->
     <div class="module" id="module-seo">
       <div class="action-bar">
-        <button class="btn btn-primary" onclick="analyzeSEO()">
+        <button class="btn btn-primary" data-action="analyzeSEO">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/></svg>
-          Analyze SEO
+          Analyze
         </button>
       </div>
-      <div class="card" id="seoScoreCard">
+      <div class="card">
         <div class="score-circle score-medium" id="seoScore">0</div>
+        <div id="seoStats" class="grid-4" style="margin-bottom:12px"></div>
         <div class="progress-item">
-          <div class="progress-header"><span>Title</span><span id="seoTitle">-</span></div>
+          <div class="progress-header"><span>Title (50-60 chars)</span><span id="seoTitle">0/60</span></div>
           <div class="progress-bar"><div class="progress-fill" id="seoTitleBar" style="width:0%;background:#6366f1"></div></div>
         </div>
         <div class="progress-item">
-          <div class="progress-header"><span>Meta Description</span><span id="seoMeta">-</span></div>
+          <div class="progress-header"><span>Meta Description</span><span id="seoMeta">0/160</span></div>
           <div class="progress-bar"><div class="progress-fill" id="seoMetaBar" style="width:0%;background:#8b5cf6"></div></div>
         </div>
         <div class="progress-item">
-          <div class="progress-header"><span>Headings</span><span id="seoHeadings">-</span></div>
+          <div class="progress-header"><span>Headings</span><span id="seoHeadings">0</span></div>
           <div class="progress-bar"><div class="progress-fill" id="seoHeadingsBar" style="width:0%;background:#ec4899"></div></div>
         </div>
         <div class="progress-item">
-          <div class="progress-header"><span>Images (Alt)</span><span id="seoImages">-</span></div>
+          <div class="progress-header"><span>Images (Alt)</span><span id="seoImages">0%</span></div>
           <div class="progress-bar"><div class="progress-fill" id="seoImagesBar" style="width:0%;background:#14b8a6"></div></div>
         </div>
         <div class="progress-item">
-          <div class="progress-header"><span>Content Quality</span><span id="seoContent">-</span></div>
+          <div class="progress-header"><span>Content Quality</span><span id="seoContent">0</span></div>
           <div class="progress-bar"><div class="progress-fill" id="seoContentBar" style="width:0%;background:#f59e0b"></div></div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-header"><span>Readability</span><span id="seoReadability">-</span></div>
         </div>
       </div>
       <div class="card" id="seoKeywordsCard" style="display:none">
@@ -616,65 +513,66 @@
       </div>
     </div>
     
-    <!-- Prices Module -->
+    <!-- Prices -->
     <div class="module" id="module-prices">
       <div class="action-bar">
-        <button class="btn btn-primary" onclick="scanPrices()">
+        <button class="btn btn-primary" data-action="scanPrices">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/></svg>
-          Extract Prices
+          Extract
         </button>
-        <button class="btn btn-secondary" onclick="comparePrices()">Compare</button>
+        <button class="btn btn-secondary" data-action="comparePrices">Compare</button>
       </div>
       <div class="grid-3" id="priceStats">
-        <div class="card" style="padding:10px;text-align:center">
-          <div style="font-size:20px;font-weight:700;color:#f59e0b" id="priceMin">-</div>
-          <div style="font-size:9px;color:#64748b">MIN</div>
+        <div class="card" style="padding:8px;text-align:center">
+          <div style="font-size:16px;font-weight:700;color:#f59e0b" id="priceMin">-</div>
+          <div style="font-size:8px;color:#64748b">MIN</div>
         </div>
-        <div class="card" style="padding:10px;text-align:center">
-          <div style="font-size:20px;font-weight:700;color:#22c55e" id="priceAvg">-</div>
-          <div style="font-size:9px;color:#64748b">AVG</div>
+        <div class="card" style="padding:8px;text-align:center">
+          <div style="font-size:16px;font-weight:700;color:#22c55e" id="priceAvg">-</div>
+          <div style="font-size:8px;color:#64748b">AVG</div>
         </div>
-        <div class="card" style="padding:10px;text-align:center">
-          <div style="font-size:20px;font-weight:700;color:#ef4444" id="priceMax">-</div>
-          <div style="font-size:9px;color:#64748b">MAX</div>
+        <div class="card" style="padding:8px;text-align:center">
+          <div style="font-size:16px;font-weight:700;color:#ef4444" id="priceMax">-</div>
+          <div style="font-size:8px;color:#64748b">MAX</div>
         </div>
       </div>
       <div class="item-list" id="priceList"></div>
     </div>
     
-    <!-- Heatmap Module -->
-    <div class="module" id="module-heatmap">
-      <div class="heatmap-controls">
-        <button class="heatmap-toggle active" onclick="toggleHeatmap('clicks')">Click Heat</button>
-        <button class="heatmap-toggle" onclick="toggleHeatmap('scroll')">Scroll Depth</button>
-        <button class="heatmap-toggle" onclick="toggleHeatmap('attention')">Attention</button>
-        <button class="heatmap-toggle" onclick="clearHeatmap()">Clear</button>
+    <!-- Social -->
+    <div class="module" id="module-social">
+      <div class="action-bar">
+        <button class="btn btn-primary" data-action="extractSocial">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/></svg>
+          Extract
+        </button>
       </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Heatmap Settings</span></div>
-        <div class="progress-item">
-          <div class="progress-header"><span>Opacity</span><span id="heatmapOpacity">50%</span></div>
-          <input type="range" id="heatmapOpacitySlider" min="10" max="100" value="50" style="width:100%">
-        </div>
-        <div class="progress-item">
-          <div class="progress-header"><span>Radius</span><span id="heatmapRadius">30px</span></div>
-          <input type="range" id="heatmapRadiusSlider" min="10" max="100" value="30" style="width:100%">
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Click Map</span></div>
-        <div id="clickMapData">Click "Scan" to generate heatmap</div>
-      </div>
+      <div class="item-list" id="socialList"></div>
     </div>
     
-    <!-- Competitor Tracker Module -->
+    <!-- Links -->
+    <div class="module" id="module-links">
+      <div class="action-bar">
+        <button class="btn btn-primary" data-action="analyzeLinks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/></svg>
+          Analyze
+        </button>
+        <button class="btn btn-secondary" data-action="getMetas">Meta Tags</button>
+      </div>
+      <div class="card" id="linksSummaryCard" style="display:none">
+        <div class="grid-2" id="linksSummary"></div>
+      </div>
+      <div class="item-list" id="linksList"></div>
+    </div>
+    
+    <!-- Tracker -->
     <div class="module" id="module-tracker">
       <div class="action-bar">
-        <button class="btn btn-primary" onclick="trackPage()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/></svg>
-          Track This Page
+        <button class="btn btn-primary" data-action="trackPage">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Track
         </button>
-        <button class="btn btn-secondary" onclick="checkChanges()">Check Changes</button>
+        <button class="btn btn-secondary" data-action="checkChanges">Check</button>
       </div>
       <div class="card">
         <div class="card-header"><span class="card-title">Tracked Pages</span></div>
@@ -687,18 +585,19 @@
     </div>
   </div>
   
+  <!-- Footer -->
   <div class="footer">
-    <button class="btn btn-secondary" onclick="saveToStorage()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-      Save All
-    </button>
-    <button class="btn btn-primary" onclick="exportData()">
+    <button class="btn btn-secondary" data-action="exportData">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       Export
     </button>
+    <button class="btn btn-primary" data-action="scanAll">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/></svg>
+      Full Scan
+    </button>
   </div>
   
-  <div class="toast" id="toast">Copied!</div>
+  <div class="toast" id="toast">Ready!</div>
   
   <script src="popup.js"></script>
 </body>

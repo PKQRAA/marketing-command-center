@@ -1,546 +1,847 @@
-// Marketing Command Center - Main Application Logic
+// Marketing Command Center - Popup Logic
+// Fixed version with proper event handling
 
-let appData = {
-  ctas: [],
-  emails: [],
-  prices: [],
-  seo: {},
-  tracked: [],
-  changes: [],
-  saved: { ctas: [], emails: [] }
+const App = {
+  data: {
+    ctas: [],
+    emails: [],
+    prices: [],
+    seo: {},
+    social: [],
+    links: [],
+    metas: [],
+    tracked: [],
+    changes: [],
+    saved: { ctas: [], emails: [] }
+  },
+  currentModule: 'dashboard',
+  heatmapMode: 'clicks',
+  currentTab: null
 };
-
-let currentModule = 'dashboard';
-let heatmapMode = 'clicks';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-  await loadSavedData();
-  await getCurrentTab();
-  setupModuleTabs();
+  await App.init();
 });
 
-async function getCurrentTab() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  document.getElementById('currentUrl').textContent = tab.url.substring(0, 40) + '...';
-  return tab;
-}
+App.init = async function() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    App.currentTab = tab;
+    document.getElementById('currentUrl').textContent = (tab.url || 'New Tab').substring(0, 35) + '...';
+    document.getElementById('currentUrl').title = tab.url || '';
+  } catch (e) {
+    document.getElementById('currentUrl').textContent = 'Unable to get URL';
+  }
+  
+  await App.loadData();
+  App.setupEventListeners();
+  App.setupTabs();
+  App.renderAll();
+};
 
-function setupModuleTabs() {
+App.loadData = async function() {
+  try {
+    const result = await chrome.storage.local.get(['mccData']);
+    if (result.mccData) {
+      App.data = { ...App.data, ...result.mccData };
+    }
+  } catch (e) {
+    console.log('No saved data found');
+  }
+};
+
+App.saveData = async function() {
+  try {
+    await chrome.storage.local.set({ mccData: App.data });
+  } catch (e) {
+    console.error('Error saving data:', e);
+  }
+};
+
+App.setupEventListeners = function() {
+  // Use event delegation for better reliability
+  document.addEventListener('click', function(e) {
+    const target = e.target.closest('[data-action]');
+    if (target) {
+      e.preventDefault();
+      const action = target.dataset.action;
+      const param = target.dataset.param;
+      if (App[action]) {
+        App[action](param);
+      }
+    }
+  });
+  
+  // Heatmap sliders
+  const opacitySlider = document.getElementById('heatmapOpacitySlider');
+  if (opacitySlider) {
+    opacitySlider.addEventListener('input', function() {
+      document.getElementById('heatmapOpacity').textContent = this.value + '%';
+    });
+  }
+  
+  const radiusSlider = document.getElementById('heatmapRadiusSlider');
+  if (radiusSlider) {
+    radiusSlider.addEventListener('input', function() {
+      document.getElementById('heatmapRadius').textContent = this.value + 'px';
+    });
+  }
+};
+
+App.setupTabs = function() {
   document.querySelectorAll('.module-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      switchModule(tab.dataset.module);
+    tab.addEventListener('click', function() {
+      App.switchModule(this.dataset.module);
     });
   });
-}
+};
 
-function switchModule(module) {
-  currentModule = module;
+App.switchModule = function(module) {
+  App.currentModule = module;
   document.querySelectorAll('.module-tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`.module-tab[data-module="${module}"]`).classList.add('active');
   document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-  document.getElementById(`module-${module}`).classList.add('active');
-}
+  document.getElementById('module-' + module).classList.add('active');
+};
 
-// Full Scan
-async function scanAll() {
-  const tab = await getCurrentTab();
-  try {
-    const results = await chrome.tabs.sendMessage(tab.id, { action: 'fullScan' });
-    appData.ctas = results.ctas || [];
-    appData.emails = results.emails || [];
-    appData.prices = results.prices || [];
-    appData.seo = results.seo || {};
-    
-    updateDashboard();
-    updateStats();
-    showToast('Full scan complete!');
-  } catch (e) {
-    showToast('Error scanning page');
-  }
-}
+App.renderAll = function() {
+  App.updateStats();
+  App.updateDashboard();
+  App.renderCTAList();
+  App.renderEmailList();
+  App.renderPriceList();
+  App.renderTrackedPages();
+  App.renderChanges();
+};
 
-// CTA Spy
-async function scanCTAs() {
-  const tab = await getCurrentTab();
-  try {
-    const results = await chrome.tabs.sendMessage(tab.id, { action: 'scanCTAs' });
-    appData.ctas = results;
-    renderCTAList();
-    showToast(`Found ${appData.ctas.length} CTAs`);
-  } catch (e) {
-    showToast('Error scanning CTAs');
-  }
-}
+// ========== SCANNING ==========
 
-function renderCTAList() {
-  const container = document.getElementById('ctaList');
-  if (appData.ctas.length === 0) {
-    container.innerHTML = renderEmptyState('No CTAs found', 'Click "Scan CTAs" to find marketing copy');
+App.scanAll = async function() {
+  if (!App.currentTab || !App.currentTab.id) {
+    App.toast('Cannot scan this page');
     return;
   }
   
-  container.innerHTML = appData.ctas.map((cta, i) => `
-    <div class="list-item">
+  App.toast('Scanning page...');
+  
+  try {
+    const results = await App.sendToContent({ action: 'fullScan' });
+    
+    if (results.error) {
+      App.toast('Error: ' + results.error);
+      return;
+    }
+    
+    App.data.ctas = results.ctas || [];
+    App.data.emails = results.emails || [];
+    App.data.prices = results.prices || [];
+    App.data.seo = results.seo || {};
+    App.data.social = results.social || [];
+    App.data.links = results.links || [];
+    App.data.metas = results.metas || [];
+    
+    App.saveData();
+    App.renderAll();
+    App.toast('Scan complete! Found ' + App.data.ctas.length + ' CTAs');
+  } catch (e) {
+    App.toast('Scan failed. Try reloading the page.');
+    console.error(e);
+  }
+};
+
+App.scanCTAs = async function() {
+  App.toast('Scanning CTAs...');
+  try {
+    const results = await App.sendToContent({ action: 'scanCTAs' });
+    App.data.ctas = results || [];
+    App.saveData();
+    App.renderCTAList();
+    App.updateStats();
+    App.toast('Found ' + App.data.ctas.length + ' CTAs');
+  } catch (e) {
+    App.toast('Scan failed');
+  }
+};
+
+App.scanEmails = async function() {
+  App.toast('Scanning emails...');
+  try {
+    const results = await App.sendToContent({ action: 'scanEmails' });
+    App.data.emails = results || [];
+    App.saveData();
+    App.renderEmailList();
+    App.updateStats();
+    App.toast('Found ' + App.data.emails.length + ' emails');
+  } catch (e) {
+    App.toast('Scan failed');
+  }
+};
+
+App.analyzeSEO = async function() {
+  App.toast('Analyzing SEO...');
+  try {
+    const results = await App.sendToContent({ action: 'analyzeSEO' });
+    App.data.seo = results || {};
+    App.saveData();
+    App.renderSEOResults();
+    App.updateStats();
+    App.toast('SEO score: ' + App.calculateSEOScore(App.data.seo));
+  } catch (e) {
+    App.toast('Analysis failed');
+  }
+};
+
+App.scanPrices = async function() {
+  App.toast('Extracting prices...');
+  try {
+    const results = await App.sendToContent({ action: 'scanPrices' });
+    App.data.prices = results || [];
+    App.saveData();
+    App.renderPriceList();
+    App.updateStats();
+    App.toast('Found ' + App.data.prices.length + ' prices');
+  } catch (e) {
+    App.toast('Scan failed');
+  }
+};
+
+App.extractSocial = async function() {
+  App.toast('Extracting social links...');
+  try {
+    const results = await App.sendToContent({ action: 'extractSocial' });
+    App.data.social = results || [];
+    App.saveData();
+    App.renderSocialList();
+    App.toast('Found ' + App.data.social.length + ' social links');
+  } catch (e) {
+    App.toast('Extraction failed');
+  }
+};
+
+App.analyzeLinks = async function() {
+  App.toast('Analyzing links...');
+  try {
+    const results = await App.sendToContent({ action: 'analyzeLinks' });
+    App.data.links = results || [];
+    App.saveData();
+    App.renderLinksList();
+    App.toast('Found ' + App.data.links.length + ' links');
+  } catch (e) {
+    App.toast('Analysis failed');
+  }
+};
+
+App.getMetas = async function() {
+  App.toast('Getting meta tags...');
+  try {
+    const results = await App.sendToContent({ action: 'getMetas' });
+    App.data.metas = results || [];
+    App.saveData();
+    App.renderMetasList();
+    App.toast('Found ' + App.data.metas.length + ' meta tags');
+  } catch (e) {
+    App.toast('Failed to get metas');
+  }
+};
+
+// ========== SEND TO CONTENT ==========
+
+App.sendToContent = function(message) {
+  return new Promise((resolve, reject) => {
+    if (!App.currentTab || !App.currentTab.id) {
+      reject(new Error('No tab'));
+      return;
+    }
+    
+    chrome.tabs.sendMessage(App.currentTab.id, message, function(response) {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+};
+
+// ========== CTA SPY ==========
+
+App.renderCTAList = function() {
+  const container = document.getElementById('ctaList');
+  if (!container) return;
+  
+  if (App.data.ctas.length === 0) {
+    container.innerHTML = App.emptyState('No CTAs Found', 'Click "Scan CTAs" to find marketing copy');
+    return;
+  }
+  
+  container.innerHTML = App.data.ctas.slice(0, 20).map((cta, i) => `
+    <div class="list-item" data-action="copyCTA" data-param="${i}">
       <div class="item-content">
-        <div class="item-type">${cta.type}</div>
-        <div class="item-text">${escapeHtml(cta.text)}</div>
+        <div class="item-type">${cta.type || 'text'}</div>
+        <div class="item-text">${App.escapeHtml(cta.text.substring(0, 80))}</div>
         <div class="item-meta">${cta.tag} • ${cta.chars} chars</div>
       </div>
       <div class="item-actions">
-        <button class="item-btn" onclick="event.stopPropagation(); saveCTA(${i})" title="Save">
+        <button class="item-btn" data-action="saveCTA" data-param="${i}" title="Save">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
         </button>
-        <button class="item-btn" onclick="event.stopPropagation(); copyText('${escapeForAttr(cta.text)}')" title="Copy">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        <button class="item-btn" data-action="copyCTA" data-param="${i}" title="Copy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
         </button>
       </div>
     </div>
   `).join('');
   
-  if (appData.saved.ctas.length > 0) {
-    document.getElementById('savedCtasSection').style.display = 'block';
-    document.getElementById('savedCtas').innerHTML = appData.saved.ctas.map((cta, i) => `
-      <div class="list-item">
-        <div class="item-content">
-          <div class="item-type">${cta.type}</div>
-          <div class="item-text">${escapeHtml(cta.text)}</div>
+  // Render saved CTAs
+  const savedSection = document.getElementById('savedCtasSection');
+  const savedContainer = document.getElementById('savedCtas');
+  if (savedSection && savedContainer) {
+    if (App.data.saved.ctas.length > 0) {
+      savedSection.style.display = 'block';
+      savedContainer.innerHTML = App.data.saved.ctas.map((cta, i) => `
+        <div class="list-item">
+          <div class="item-content">
+            <div class="item-type">${cta.type || 'saved'}</div>
+            <div class="item-text">${App.escapeHtml(cta.text.substring(0, 60))}</div>
+          </div>
+          <button class="item-btn" data-action="removeSavedCTA" data-param="${i}" title="Remove">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
-        <button class="item-btn" onclick="removeSavedCTA(${i})">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-    `).join('');
+      `).join('');
+    } else {
+      savedSection.style.display = 'none';
+    }
   }
-}
+};
 
-function saveCTA(index) {
-  const cta = appData.ctas[index];
-  if (!appData.saved.ctas.find(c => c.text === cta.text)) {
-    appData.saved.ctas.push(cta);
-    saveToStorage();
-    renderCTAList();
-    showToast('CTA saved!');
+App.copyCTA = function(index) {
+  const text = App.data.ctas[index]?.text;
+  if (text) {
+    App.copyToClipboard(text);
+    App.toast('CTA copied!');
   }
-}
+};
 
-function removeSavedCTA(index) {
-  appData.saved.ctas.splice(index, 1);
-  saveToStorage();
-  renderCTAList();
-}
-
-function copyAllCTAs() {
-  const text = appData.ctas.map(c => c.text).join('\n');
-  navigator.clipboard.writeText(text);
-  showToast(`Copied ${appData.ctas.length} CTAs!`);
-}
-
-// Email Finder
-async function scanEmails() {
-  const tab = await getCurrentTab();
-  try {
-    const results = await chrome.tabs.sendMessage(tab.id, { action: 'scanEmails' });
-    appData.emails = results;
-    renderEmailList();
-    showToast(`Found ${appData.emails.length} emails`);
-  } catch (e) {
-    showToast('Error scanning emails');
+App.saveCTA = function(index) {
+  const cta = App.data.ctas[index];
+  if (cta && !App.data.saved.ctas.find(c => c.text === cta.text)) {
+    App.data.saved.ctas.push(cta);
+    App.saveData();
+    App.renderCTAList();
+    App.toast('CTA saved!');
+  } else {
+    App.toast('Already saved');
   }
-}
+};
 
-function renderEmailList() {
+App.removeSavedCTA = function(index) {
+  App.data.saved.ctas.splice(index, 1);
+  App.saveData();
+  App.renderCTAList();
+  App.toast('Removed');
+};
+
+App.copyAllCTAs = function() {
+  if (App.data.ctas.length === 0) {
+    App.toast('No CTAs to copy');
+    return;
+  }
+  const text = App.data.ctas.map(c => c.text).join('\n');
+  App.copyToClipboard(text);
+  App.toast('Copied ' + App.data.ctas.length + ' CTAs!');
+};
+
+// ========== EMAIL FINDER ==========
+
+App.renderEmailList = function() {
   const container = document.getElementById('emailList');
-  if (appData.emails.length === 0) {
-    container.innerHTML = renderEmptyState('No emails found', 'Try scanning a contact or about page');
+  if (!container) return;
+  
+  if (App.data.emails.length === 0) {
+    container.innerHTML = App.emptyState('No Emails Found', 'Try an About or Contact page');
     return;
   }
   
-  container.innerHTML = appData.emails.map((email, i) => `
-    <div class="list-item">
+  container.innerHTML = App.data.emails.slice(0, 20).map((email, i) => `
+    <div class="list-item" data-action="copyEmail" data-param="${i}">
       <div class="item-content">
-        <div class="item-type">${email.type}</div>
-        <div class="item-text">${email.address}</div>
-        <div class="item-meta">${email.context || 'Page content'}</div>
+        <div class="item-type">${email.type || 'email'}</div>
+        <div class="item-text" style="color:#14b8a6">${email.address}</div>
+        <div class="item-meta">${App.escapeHtml(email.context?.substring(0, 50) || 'Found in page')}</div>
       </div>
-      <button class="item-btn" onclick="copyText('${email.address}')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      <button class="item-btn" data-action="copyEmail" data-param="${i}" title="Copy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
       </button>
     </div>
   `).join('');
-}
+};
 
-function copyAllEmails() {
-  const text = appData.emails.map(e => e.address).join('\n');
-  navigator.clipboard.writeText(text);
-  showToast(`Copied ${appData.emails.length} emails!`);
-}
-
-// SEO Analyzer
-async function analyzeSEO() {
-  const tab = await getCurrentTab();
-  try {
-    const results = await chrome.tabs.sendMessage(tab.id, { action: 'analyzeSEO' });
-    appData.seo = results;
-    renderSEOResults();
-    showToast('SEO analysis complete!');
-  } catch (e) {
-    showToast('Error analyzing SEO');
+App.copyEmail = function(index) {
+  const email = App.data.emails[index]?.address;
+  if (email) {
+    App.copyToClipboard(email);
+    App.toast('Email copied!');
   }
-}
+};
 
-function renderSEOResults() {
-  const seo = appData.seo;
-  const score = calculateSEOScore(seo);
+App.copyAllEmails = function() {
+  if (App.data.emails.length === 0) {
+    App.toast('No emails to copy');
+    return;
+  }
+  const text = App.data.emails.map(e => e.address).join('\n');
+  App.copyToClipboard(text);
+  App.toast('Copied ' + App.data.emails.length + ' emails!');
+};
+
+// ========== SEO ANALYZER ==========
+
+App.renderSEOResults = function() {
+  const seo = App.data.seo;
+  const score = App.calculateSEOScore(seo);
   
   const scoreEl = document.getElementById('seoScore');
-  scoreEl.textContent = score;
-  scoreEl.className = 'score-circle ' + (score >= 80 ? 'score-good' : score >= 60 ? 'score-medium' : 'score-bad');
+  if (scoreEl) {
+    scoreEl.textContent = score;
+    scoreEl.className = 'score-circle ' + (score >= 80 ? 'score-good' : score >= 60 ? 'score-medium' : 'score-bad');
+  }
   
   // Title
   const titleLen = seo.title ? seo.title.length : 0;
-  document.getElementById('seoTitle').textContent = `${titleLen}/60 chars`;
-  document.getElementById('seoTitleBar').style.width = Math.min(100, (titleLen / 60) * 100) + '%';
+  App.updateProgress('seoTitle', 'seoTitleBar', titleLen, 60);
   
-  // Meta description
+  // Meta
   const metaLen = seo.metaDesc ? seo.metaDesc.length : 0;
-  document.getElementById('seoMeta').textContent = `${metaLen}/160 chars`;
-  document.getElementById('seoMetaBar').style.width = Math.min(100, (metaLen / 160) * 100) + '%';
+  App.updateProgress('seoMeta', 'seoMetaBar', metaLen, 160);
   
   // Headings
   const headingCount = seo.headings ? seo.headings.length : 0;
-  document.getElementById('seoHeadings').textContent = `${headingCount} found`;
-  document.getElementById('seoHeadingsBar').style.width = Math.min(100, (headingCount / 6) * 100) + '%';
+  App.updateProgress('seoHeadings', 'seoHeadingsBar', headingCount, 6);
   
   // Images
-  const altPercent = seo.images ? seo.images.filter(i => i.alt).length / (seo.images.length || 1) * 100 : 0;
-  document.getElementById('seoImages').textContent = `${Math.round(altPercent)}% have alt`;
-  document.getElementById('seoImagesBar').style.width = altPercent + '%';
+  const altPercent = seo.images ? (seo.images.filter(i => i.alt).length / Math.max(1, seo.images.length) * 100) : 0;
+  const imgEl = document.getElementById('seoImages');
+  const imgBar = document.getElementById('seoImagesBar');
+  if (imgEl) imgEl.textContent = `${Math.round(altPercent)}% alt text`;
+  if (imgBar) imgBar.style.width = altPercent + '%';
   
   // Content
   const wordCount = seo.wordCount || 0;
   const contentScore = Math.min(100, (wordCount / 300) * 100);
-  document.getElementById('seoContent').textContent = `${wordCount} words`;
-  document.getElementById('seoContentBar').style.width = contentScore + '%';
+  App.updateProgress('seoContent', 'seoContentBar', wordCount / 10, 30);
   
   // Keywords
-  if (seo.keywords && seo.keywords.length > 0) {
-    document.getElementById('seoKeywordsCard').style.display = 'block';
-    document.getElementById('seoKeywords').innerHTML = seo.keywords.slice(0, 10).map(k => `
-      <div style="display:inline-block;background:var(--bg-secondary);padding:4px 10px;border-radius:12px;margin:2px;font-size:11px">
-        ${k.word} <span style="color:var(--accent-1)">${k.count}x</span>
-      </div>
+  const keywordsContainer = document.getElementById('seoKeywords');
+  const keywordsCard = document.getElementById('seoKeywordsCard');
+  if (keywordsContainer && seo.keywords && seo.keywords.length > 0) {
+    keywordsCard.style.display = 'block';
+    keywordsContainer.innerHTML = seo.keywords.slice(0, 12).map(k => `
+      <span class="keyword-tag">${k.word} <span class="keyword-count">${k.count}x</span></span>
     `).join('');
   }
-}
+  
+  // Readability
+  const readabilityEl = document.getElementById('seoReadability');
+  if (readabilityEl && seo.readability) {
+    readabilityEl.textContent = `Grade ${seo.readability.grade} • Score ${seo.readability.score}`;
+  }
+  
+  // Stats
+  const statsContainer = document.getElementById('seoStats');
+  if (statsContainer) {
+    statsContainer.innerHTML = `
+      <div class="stat-mini">
+        <span class="stat-mini-val">${seo.h1Count || 0}</span>
+        <span class="stat-mini-label">H1</span>
+      </div>
+      <div class="stat-mini">
+        <span class="stat-mini-val">${seo.h2Count || 0}</span>
+        <span class="stat-mini-label">H2</span>
+      </div>
+      <div class="stat-mini">
+        <span class="stat-mini-val">${seo.images?.length || 0}</span>
+        <span class="stat-mini-label">Images</span>
+      </div>
+      <div class="stat-mini">
+        <span class="stat-mini-val">${seo.externalLinks || 0}</span>
+        <span class="stat-mini-label">Links</span>
+      </div>
+    `;
+  }
+};
 
-function calculateSEOScore(seo) {
+App.updateProgress = function(labelId, barId, current, max) {
+  const labelEl = document.getElementById(labelId);
+  const barEl = document.getElementById(barId);
+  if (labelEl) labelEl.textContent = `${current}/${max}`;
+  if (barEl) barEl.style.width = Math.min(100, (current / max) * 100) + '%';
+};
+
+App.calculateSEOScore = function(seo) {
+  if (!seo || Object.keys(seo).length === 0) return 0;
   let score = 0;
   if (seo.title && seo.title.length >= 30 && seo.title.length <= 60) score += 20;
   if (seo.metaDesc && seo.metaDesc.length >= 120 && seo.metaDesc.length <= 160) score += 20;
   if (seo.headings && seo.headings.length >= 1) score += 20;
-  if (seo.images && seo.images.filter(i => i.alt).length / seo.images.length > 0.8) score += 20;
+  if (seo.images && seo.images.length > 0 && seo.images.filter(i => i.alt).length / seo.images.length > 0.8) score += 20;
   if (seo.wordCount && seo.wordCount >= 300) score += 20;
   return score;
-}
+};
 
-// Price Extractor
-async function scanPrices() {
-  const tab = await getCurrentTab();
-  try {
-    const results = await chrome.tabs.sendMessage(tab.id, { action: 'scanPrices' });
-    appData.prices = results;
-    renderPriceList();
-    showToast(`Found ${appData.prices.length} prices`);
-  } catch (e) {
-    showToast('Error scanning prices');
-  }
-}
+// ========== PRICE EXTRACTOR ==========
 
-function renderPriceList() {
-  const prices = appData.prices;
+App.renderPriceList = function() {
+  const prices = App.data.prices;
+  const statsContainer = document.getElementById('priceStats');
   
   if (prices.length > 0) {
     const values = prices.map(p => p.value);
-    document.getElementById('priceMin').textContent = formatPrice(Math.min(...values));
-    document.getElementById('priceMax').textContent = formatPrice(Math.max(...values));
-    document.getElementById('priceAvg').textContent = formatPrice(values.reduce((a, b) => a + b, 0) / values.length);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    
+    if (document.getElementById('priceMin')) document.getElementById('priceMin').textContent = '$' + min.toFixed(2);
+    if (document.getElementById('priceMax')) document.getElementById('priceMax').textContent = '$' + max.toFixed(2);
+    if (document.getElementById('priceAvg')) document.getElementById('priceAvg').textContent = '$' + avg.toFixed(2);
   }
   
   const container = document.getElementById('priceList');
+  if (!container) return;
+  
   if (prices.length === 0) {
-    container.innerHTML = renderEmptyState('No prices found', 'Try scanning a pricing or product page');
+    container.innerHTML = App.emptyState('No Prices Found', 'Try a pricing or product page');
     return;
   }
   
-  container.innerHTML = prices.map((price, i) => `
-    <div class="list-item">
+  container.innerHTML = prices.slice(0, 20).map((price, i) => `
+    <div class="list-item" data-action="copyPrice" data-param="${i}">
       <div class="item-content">
-        <div class="item-type">${price.currency}</div>
-        <div class="item-text" style="font-size:16px;font-weight:600;color:#22c55e">${formatPrice(price.value)}</div>
-        <div class="item-meta">${price.context || 'Price element'}</div>
+        <div class="item-type">${price.currency || '$'}</div>
+        <div class="item-text" style="font-size:18px;font-weight:700;color:#22c55e">$${price.value.toFixed(2)}</div>
+        <div class="item-meta">${App.escapeHtml(price.context?.substring(0, 40) || 'Price')}</div>
       </div>
-      <button class="item-btn" onclick="copyText('${price.raw}')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      <button class="item-btn" data-action="copyPrice" data-param="${i}" title="Copy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
       </button>
     </div>
   `).join('');
-}
+};
 
-function comparePrices() {
-  const prices = appData.prices.map(p => p.value);
-  if (prices.length < 2) {
-    showToast('Need at least 2 prices to compare');
+App.copyPrice = function(index) {
+  const price = App.data.prices[index];
+  if (price) {
+    App.copyToClipboard(price.raw);
+    App.toast('Price copied!');
+  }
+};
+
+App.comparePrices = function() {
+  if (App.data.prices.length < 2) {
+    App.toast('Need at least 2 prices');
     return;
   }
-  const text = `Price Analysis:\nMin: ${formatPrice(Math.min(...prices))}\nMax: ${formatPrice(Math.max(...prices))}\nAvg: ${formatPrice(prices.reduce((a, b) => a + b, 0) / prices.length)}`;
-  navigator.clipboard.writeText(text);
-  showToast('Price comparison copied!');
-}
+  const values = App.data.prices.map(p => p.value);
+  const text = `Price Analysis:\nMin: $${Math.min(...values).toFixed(2)}\nMax: $${Math.max(...values).toFixed(2)}\nAvg: $${(values.reduce((a, b) => a + b, 0) / values.length).toFixed(2)}`;
+  App.copyToClipboard(text);
+  App.toast('Comparison copied!');
+};
 
-function formatPrice(val) {
-  return '$' + val.toFixed(2);
-}
+// ========== SOCIAL EXTRACTOR ==========
 
-// Heatmap
-async function toggleHeatmap(mode) {
-  heatmapMode = mode;
-  document.querySelectorAll('.heatmap-toggle').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+App.renderSocialList = function() {
+  const container = document.getElementById('socialList');
+  if (!container) return;
   
-  const tab = await getCurrentTab();
-  const opacity = document.getElementById('heatmapOpacitySlider').value / 100;
-  const radius = parseInt(document.getElementById('heatmapRadiusSlider').value);
+  if (App.data.social.length === 0) {
+    container.innerHTML = App.emptyState('No Social Links', 'Social links will appear here');
+    return;
+  }
   
-  try {
-    const clickData = await chrome.tabs.sendMessage(tab.id, { 
-      action: 'generateHeatmap',
-      mode,
-      opacity,
-      radius
-    });
-    document.getElementById('clickMapData').innerHTML = clickData.map(c => `
-      <div style="padding:4px 0;border-bottom:1px solid var(--border)">
-        <span style="color:var(--accent-1)">${c.count}</span> clicks at ${c.x}%, ${c.y}%
+  container.innerHTML = App.data.social.map((s, i) => `
+    <div class="list-item" data-action="openUrl" data-param="${s.url}">
+      <div class="item-content">
+        <div class="item-type">${s.platform}</div>
+        <div class="item-text" style="color:#8b5cf6">${s.handle || s.url}</div>
+        <div class="item-meta">${s.url}</div>
       </div>
-    `).join('');
-    showToast(`${mode} heatmap activated`);
-  } catch (e) {
-    showToast('Error generating heatmap');
-  }
-}
+      <button class="item-btn" data-action="openUrl" data-param="${s.url}" title="Open">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+      </button>
+    </div>
+  `).join('');
+};
 
-function clearHeatmap() {
-  document.getElementById('clickMapData').textContent = 'Click "Scan" to generate heatmap';
-  showToast('Heatmap cleared');
-}
+App.openUrl = function(url) {
+  if (url) chrome.tabs.create({ url: url });
+};
 
-document.getElementById('heatmapOpacitySlider')?.addEventListener('input', function() {
-  document.getElementById('heatmapOpacity').textContent = this.value + '%';
-});
+// ========== LINKS ANALYZER ==========
 
-document.getElementById('heatmapRadiusSlider')?.addEventListener('input', function() {
-  document.getElementById('heatmapRadius').textContent = this.value + 'px';
-});
-
-// Competitor Tracker
-async function trackPage() {
-  const tab = await getCurrentTab();
-  const existing = appData.tracked.find(t => t.url === tab.url);
+App.renderLinksList = function() {
+  const container = document.getElementById('linksList');
+  if (!container) return;
   
+  if (App.data.links.length === 0) {
+    container.innerHTML = App.emptyState('No Links', 'Links will appear here');
+    return;
+  }
+  
+  // Show summary
+  const internal = App.data.links.filter(l => l.type === 'internal').length;
+  const external = App.data.links.filter(l => l.type === 'external').length;
+  
+  const summaryEl = document.getElementById('linksSummary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="stat-mini"><span class="stat-mini-val">${internal}</span><span class="stat-mini-label">Internal</span></div>
+      <div class="stat-mini"><span class="stat-mini-val">${external}</span><span class="stat-mini-label">External</span></div>
+    `;
+  }
+  
+  container.innerHTML = App.data.links.slice(0, 20).map((link, i) => `
+    <div class="list-item" data-action="openUrl" data-param="${link.href}">
+      <div class="item-content">
+        <div class="item-type">${link.type}</div>
+        <div class="item-text">${App.escapeHtml(link.text?.substring(0, 50) || link.href.substring(0, 50))}</div>
+        <div class="item-meta">${link.href.substring(0, 40)}...</div>
+      </div>
+    </div>
+  `).join('');
+};
+
+// ========== META TAGS ==========
+
+App.renderMetasList = function() {
+  const container = document.getElementById('metasList');
+  if (!container) return;
+  
+  if (App.data.metas.length === 0) {
+    container.innerHTML = App.emptyState('No Meta Tags', 'Meta tags will appear here');
+    return;
+  }
+  
+  container.innerHTML = App.data.metas.slice(0, 15).map((meta, i) => `
+    <div class="list-item" data-action="copyMeta" data-param="${i}">
+      <div class="item-content">
+        <div class="item-type">${meta.property || meta.name || 'meta'}</div>
+        <div class="item-text" style="font-size:11px">${App.escapeHtml(meta.content?.substring(0, 80))}</div>
+      </div>
+      <button class="item-btn" data-action="copyMeta" data-param="${i}" title="Copy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+    </div>
+  `).join('');
+};
+
+App.copyMeta = function(index) {
+  const meta = App.data.metas[index];
+  if (meta) {
+    App.copyToClipboard(`${meta.property || meta.name}: ${meta.content}`);
+    App.toast('Meta copied!');
+  }
+};
+
+// ========== HEATMAP ==========
+
+App.toggleHeatmap = async function(mode) {
+  if (event && event.target) {
+    document.querySelectorAll('.heatmap-toggle').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+  
+  App.heatmapMode = mode;
+  
+  try {
+    const opacity = (document.getElementById('heatmapOpacitySlider')?.value || 50) / 100;
+    const radius = parseInt(document.getElementById('heatmapRadiusSlider')?.value || 30);
+    
+    await App.sendToContent({ action: 'generateHeatmap', mode, opacity, radius });
+    App.toast('Heatmap: ' + mode);
+  } catch (e) {
+    App.toast('Heatmap failed');
+  }
+};
+
+App.clearHeatmap = async function() {
+  try {
+    await App.sendToContent({ action: 'clearHeatmap' });
+    document.getElementById('clickMapData').innerHTML = 'Click a mode to generate heatmap';
+    App.toast('Heatmap cleared');
+  } catch (e) {
+    App.toast('Clear failed');
+  }
+};
+
+// ========== TRACKER ==========
+
+App.trackPage = async function() {
+  if (!App.currentTab) {
+    App.toast('Cannot track this page');
+    return;
+  }
+  
+  const existing = App.data.tracked.find(t => t.url === App.currentTab.url);
   if (existing) {
-    showToast('Page already tracked');
+    App.toast('Page already tracked');
     return;
   }
   
   try {
-    const snapshot = await chrome.tabs.sendMessage(tab.id, { action: 'getPageSnapshot' });
-    appData.tracked.push({
-      url: tab.url,
-      title: tab.title,
+    const snapshot = await App.sendToContent({ action: 'getPageSnapshot' });
+    App.data.tracked.push({
+      url: App.currentTab.url,
+      title: App.currentTab.title || 'Untitled',
       snapshot,
       date: new Date().toISOString()
     });
-    saveToStorage();
-    renderTrackedPages();
-    showToast('Page tracked!');
+    App.saveData();
+    App.renderTrackedPages();
+    App.toast('Page tracked!');
   } catch (e) {
-    showToast('Error tracking page');
+    App.toast('Tracking failed');
   }
-}
+};
 
-async function checkChanges() {
-  if (appData.tracked.length === 0) {
-    showToast('No pages tracked yet');
+App.checkChanges = async function() {
+  if (App.data.tracked.length === 0) {
+    App.toast('No pages tracked');
     return;
   }
   
-  const tab = await getCurrentTab();
-  const tracked = appData.tracked.find(t => t.url === tab.url);
-  
+  const tracked = App.data.tracked.find(t => t.url === App.currentTab?.url);
   if (!tracked) {
-    showToast('Track this page first');
+    App.toast('Track this page first');
     return;
   }
   
   try {
-    const current = await chrome.tabs.sendMessage(tab.id, { action: 'getPageSnapshot' });
-    const changes = compareSnapshots(tracked.snapshot, current);
+    const current = await App.sendToContent({ action: 'getPageSnapshot' });
+    const changes = App.compareSnapshots(tracked.snapshot, current);
     
     if (changes.length === 0) {
-      showToast('No changes detected');
+      App.toast('No changes detected');
     } else {
-      appData.changes.unshift({
-        url: tab.url,
+      App.data.changes.unshift({
+        url: App.currentTab.url,
+        title: App.currentTab.title,
         changes,
         date: new Date().toISOString()
       });
-      saveToStorage();
-      showToast(`${changes.length} changes detected!`);
+      App.saveData();
+      App.toast(changes.length + ' changes found!');
     }
-    renderChanges();
+    App.renderChanges();
   } catch (e) {
-    showToast('Error checking changes');
+    App.toast('Check failed');
   }
-}
+};
 
-function compareSnapshots(old, current) {
+App.compareSnapshots = function(old, current) {
   const changes = [];
-  if (old.title !== current.title) changes.push(`Title: "${old.title}" → "${current.title}"`);
-  if (old.prices.length !== current.prices.length) changes.push(`Prices: ${old.prices.length} → ${current.prices.length}`);
-  if (old.ctas.length !== current.ctas.length) changes.push(`CTAs: ${old.ctas.length} → ${current.ctas.length}`);
-  if (old.wordCount !== current.wordCount) changes.push(`Content: ${old.wordCount} → ${current.wordCount} words`);
+  if (!old || !current) return changes;
+  if (old.title !== current.title) changes.push('Title changed');
+  if (old.prices?.length !== current.prices?.length) changes.push('Prices changed');
+  if (old.ctas?.length !== current.ctas?.length) changes.push('CTAs changed');
+  if (old.wordCount !== current.wordCount) changes.push('Content changed');
   return changes;
-}
+};
 
-function renderTrackedPages() {
+App.renderTrackedPages = function() {
   const container = document.getElementById('trackedPages');
-  if (appData.tracked.length === 0) {
-    container.innerHTML = renderEmptyState('No tracked pages', 'Track a page to monitor changes');
+  if (!container) return;
+  
+  if (App.data.tracked.length === 0) {
+    container.innerHTML = App.emptyState('No Tracked Pages', 'Track a page to monitor changes');
     return;
   }
   
-  container.innerHTML = appData.tracked.map((page, i) => `
+  container.innerHTML = App.data.tracked.map((page, i) => `
     <div class="list-item">
       <div class="item-content">
         <div class="item-type">${new Date(page.date).toLocaleDateString()}</div>
-        <div class="item-text">${page.title.substring(0, 40)}</div>
-        <div class="item-meta">${page.url.substring(0, 30)}...</div>
+        <div class="item-text">${App.escapeHtml(page.title.substring(0, 40))}</div>
       </div>
-      <button class="item-btn" onclick="removeTracked(${i})">
+      <button class="item-btn" data-action="removeTracked" data-param="${i}" title="Remove">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
   `).join('');
-}
+};
 
-function removeTracked(index) {
-  appData.tracked.splice(index, 1);
-  saveToStorage();
-  renderTrackedPages();
-}
+App.removeTracked = function(index) {
+  App.data.tracked.splice(index, 1);
+  App.saveData();
+  App.renderTrackedPages();
+  App.toast('Removed');
+};
 
-function renderChanges() {
+App.renderChanges = function() {
   const container = document.getElementById('changeHistory');
-  if (appData.changes.length === 0) {
-    container.innerHTML = renderEmptyState('No changes', 'Check for changes on tracked pages');
+  if (!container) return;
+  
+  if (App.data.changes.length === 0) {
+    container.innerHTML = App.emptyState('No Changes', 'Check tracked pages for changes');
     return;
   }
   
-  container.innerHTML = appData.changes.map(change => `
+  container.innerHTML = App.data.changes.map(change => `
     <div class="list-item">
       <div class="item-content">
         <div class="item-type">${new Date(change.date).toLocaleString()}</div>
-        <div class="item-text">${change.url.substring(0, 30)}...</div>
-        ${change.changes.map(c => `<div class="item-meta">${c}</div>`).join('')}
+        <div class="item-text">${App.escapeHtml(change.title?.substring(0, 40) || 'Page')}</div>
+        ${change.changes.map(c => `<div class="item-meta">• ${c}</div>`).join('')}
       </div>
     </div>
   `).join('');
-}
+};
 
-// Dashboard
-function updateDashboard() {
-  document.getElementById('dashCtas').textContent = appData.ctas.length;
-  document.getElementById('dashCtasBar').style.width = Math.min(100, appData.ctas.length * 5) + '%';
+// ========== DASHBOARD ==========
+
+App.updateDashboard = function() {
+  document.getElementById('dashCtas').textContent = App.data.ctas.length;
+  document.getElementById('dashCtasBar').style.width = Math.min(100, App.data.ctas.length * 5) + '%';
   
-  document.getElementById('dashEmails').textContent = appData.emails.length;
-  document.getElementById('dashEmailsBar').style.width = Math.min(100, appData.emails.length * 10) + '%';
+  document.getElementById('dashEmails').textContent = App.data.emails.length;
+  document.getElementById('dashEmailsBar').style.width = Math.min(100, App.data.emails.length * 10) + '%';
   
-  document.getElementById('dashPrices').textContent = appData.prices.length;
-  document.getElementById('dashPricesBar').style.width = Math.min(100, appData.prices.length * 10) + '%';
+  document.getElementById('dashPrices').textContent = App.data.prices.length;
+  document.getElementById('dashPricesBar').style.width = Math.min(100, App.data.prices.length * 10) + '%';
   
-  const seoScore = calculateSEOScore(appData.seo);
+  const seoScore = App.calculateSEOScore(App.data.seo);
   document.getElementById('dashSeo').textContent = seoScore + '/100';
   document.getElementById('dashSeoBar').style.width = seoScore + '%';
-}
+};
 
-function updateStats() {
-  document.getElementById('statCtas').textContent = appData.ctas.length;
-  document.getElementById('statEmails').textContent = appData.emails.length;
-  document.getElementById('statPrices').textContent = appData.prices.length;
-  document.getElementById('statSeo').textContent = calculateSEOScore(appData.seo);
-}
+App.updateStats = function() {
+  document.getElementById('statCtas').textContent = App.data.ctas.length;
+  document.getElementById('statEmails').textContent = App.data.emails.length;
+  document.getElementById('statPrices').textContent = App.data.prices.length;
+  document.getElementById('statSeo').textContent = App.calculateSEOScore(App.data.seo);
+};
 
-// Storage
-async function saveToStorage() {
-  await chrome.storage.local.set({ appData });
-  showToast('Data saved!');
-}
+// ========== UTILITIES ==========
 
-async function loadSavedData() {
-  const result = await chrome.storage.local.get(['appData']);
-  if (result.appData) {
-    appData = { ...appData, ...result.appData };
-    updateDashboard();
-    updateStats();
-    renderCTAList();
-    renderEmailList();
-    renderPriceList();
-    renderTrackedPages();
-    renderChanges();
-  }
-}
+App.copyToClipboard = function(text) {
+  navigator.clipboard.writeText(text).catch(() => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  });
+};
 
-function clearAll() {
-  if (confirm('Clear all collected data?')) {
-    appData = { ctas: [], emails: [], prices: [], seo: {}, tracked: [], changes: [], saved: { ctas: [], emails: [] } };
-    chrome.storage.local.remove(['appData']);
-    updateDashboard();
-    updateStats();
-    showToast('All data cleared');
-  }
-}
-
-// Export
-function exportData() {
-  const data = JSON.stringify(appData, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `marketing-data-${new Date().toISOString().split('T')[0]}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('Data exported!');
-}
-
-// Utilities
-function copyText(text) {
-  navigator.clipboard.writeText(text);
-  showToast('Copied!');
-}
-
-function escapeHtml(text) {
+App.escapeHtml = function(text) {
+  if (!text) return '';
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
-}
+};
 
-function escapeForAttr(text) {
-  return text.replace(/'/g, "\\'").replace(/"/g, '\\"');
-}
-
-function renderEmptyState(title, subtitle) {
+App.emptyState = function(title, subtitle) {
   return `
     <div class="empty-state">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -549,14 +850,137 @@ function renderEmptyState(title, subtitle) {
         <line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>
       <p style="font-weight:600">${title}</p>
-      <p style="margin-top:4px">${subtitle}</p>
+      <p style="margin-top:4px;font-size:11px">${subtitle}</p>
     </div>
   `;
-}
+};
 
-function showToast(message) {
+App.toast = function(message) {
   const toast = document.getElementById('toast');
-  toast.textContent = message;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2000);
-}
+  if (toast) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+};
+
+App.exportData = function() {
+  const data = JSON.stringify(App.data, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `marketing-data-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  App.toast('Data exported!');
+};
+
+App.clearAll = function() {
+  if (confirm('Clear all collected data?')) {
+    App.data = { ctas: [], emails: [], prices: [], seo: {}, social: [], links: [], metas: [], tracked: [], changes: [], saved: { ctas: [], emails: [] } };
+    chrome.storage.local.remove(['mccData']);
+    App.renderAll();
+    App.toast('All data cleared');
+  }
+};
+
+App.switchModule = function(module) {
+  App.switchModule(module);
+};
+
+// Add missing functions
+App.clearSavedCtas = function() {
+  App.data.saved.ctas = [];
+  App.saveData();
+  App.renderCTAList();
+  App.toast('Saved CTAs cleared');
+};
+
+App.renderSocialList = function() {
+  const container = document.getElementById('socialList');
+  if (!container) return;
+  
+  if (App.data.social.length === 0) {
+    container.innerHTML = App.emptyState('No Social Links', 'Extract to find social profiles');
+    return;
+  }
+  
+  container.innerHTML = App.data.social.map((s, i) => `
+    <div class="list-item" data-action="openUrl" data-param="${s.url}">
+      <div class="item-content">
+        <div class="item-type">${s.platform}</div>
+        <div class="item-text" style="color:#8b5cf6">${s.handle || 'Profile'}</div>
+        <div class="item-meta">${s.url}</div>
+      </div>
+      <button class="item-btn" data-action="openUrl" data-param="${s.url}" title="Open">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+      </button>
+    </div>
+  `).join('');
+};
+
+App.renderLinksList = function() {
+  const container = document.getElementById('linksList');
+  if (!container) return;
+  
+  if (App.data.links.length === 0) {
+    container.innerHTML = App.emptyState('No Links Found', 'Analyze to find all links');
+    return;
+  }
+  
+  const internal = App.data.links.filter(l => l.type === 'internal').length;
+  const external = App.data.links.filter(l => l.type === 'external').length;
+  
+  const summaryCard = document.getElementById('linksSummaryCard');
+  const summaryEl = document.getElementById('linksSummary');
+  if (summaryCard && summaryEl) {
+    summaryCard.style.display = 'block';
+    summaryEl.innerHTML = `
+      <div class="stat-mini"><span class="stat-mini-val">${internal}</span><span class="stat-mini-label">Internal</span></div>
+      <div class="stat-mini"><span class="stat-mini-val">${external}</span><span class="stat-mini-label">External</span></div>
+    `;
+  }
+  
+  container.innerHTML = App.data.links.slice(0, 20).map((link, i) => `
+    <div class="list-item" data-action="openUrl" data-param="${link.href}">
+      <div class="item-content">
+        <div class="item-type">${link.type}</div>
+        <div class="item-text">${App.escapeHtml(link.text?.substring(0, 50) || link.href.substring(0, 50))}</div>
+        <div class="item-meta">${link.href.substring(0, 40)}...</div>
+      </div>
+    </div>
+  `).join('');
+};
+
+App.renderMetasList = function() {
+  const container = document.getElementById('linksList');
+  if (!container) return;
+  
+  if (App.data.metas.length === 0) {
+    container.innerHTML = App.emptyState('No Meta Tags', 'Get meta tags to view them');
+    return;
+  }
+  
+  container.innerHTML = App.data.metas.slice(0, 20).map((meta, i) => `
+    <div class="list-item" data-action="copyMeta" data-param="${i}">
+      <div class="item-content">
+        <div class="item-type">${meta.property || meta.name || 'meta'}</div>
+        <div class="item-text" style="font-size:10px">${App.escapeHtml(meta.content?.substring(0, 80))}</div>
+      </div>
+      <button class="item-btn" data-action="copyMeta" data-param="${i}" title="Copy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+    </div>
+  `).join('');
+};
+
+App.copyMeta = function(index) {
+  const meta = App.data.metas[index];
+  if (meta) {
+    App.copyToClipboard(`${meta.property || meta.name}: ${meta.content}`);
+    App.toast('Copied!');
+  }
+};
