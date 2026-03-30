@@ -3,35 +3,53 @@
 <head>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { width: 350px; min-height: 400px; font-family: Arial, sans-serif; background: #0f172a; color: #fff; padding: 15px; }
-.header { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: center; }
+body { width: 400px; min-height: 500px; font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #fff; }
+.header { background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899); padding: 15px; text-align: center; }
 .header h1 { font-size: 16px; margin-bottom: 5px; }
-.url { font-size: 10px; opacity: 0.8; }
-.btn { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-.btn-blue { background: #6366f1; color: white; }
-.btn-blue:hover { background: #4f46e5; }
-.btn-green { background: #22c55e; color: white; }
-.btn-green:hover { background: #16a34a; }
-.btn-red { background: #ef4444; color: white; }
-.btn-red:hover { background: #dc2626; }
-.btn-orange { background: #f59e0b; color: white; }
-.btn-orange:hover { background: #d97706; }
-.btn-gray { background: #475569; color: white; }
-.btn-gray:hover { background: #334155; }
-.section { background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
-.section h3 { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
-.result { background: #1e293b; padding: 8px 12px; border-radius: 6px; margin: 5px 0; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+.url { font-size: 10px; opacity: 0.8; word-break: break-all; }
+.stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 10px; background: #1e293b; }
+.stat { background: #0f172a; padding: 8px; border-radius: 8px; text-align: center; }
+.stat-val { font-size: 16px; font-weight: bold; color: #6366f1; }
+.stat-label { font-size: 7px; color: #64748b; text-transform: uppercase; }
+.tabs { display: flex; background: #1e293b; overflow-x: auto; border-bottom: 1px solid #334155; }
+.tab { padding: 10px 12px; font-size: 10px; color: #94a3b8; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }
+.tab:hover { color: #fff; }
+.tab.active { color: #6366f1; border-bottom-color: #6366f1; }
+.content { padding: 10px; max-height: 350px; overflow-y: auto; }
+.section { background: #1e293b; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+.section h3 { font-size: 11px; color: #94a3b8; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+.btn { width: 100%; padding: 10px; margin: 4px 0; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-blue { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+.btn-blue:hover { opacity: 0.9; }
+.btn-green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+.btn-orange { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+.btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+.btn-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+.btn-cyan { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
+.btn-pink { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+.result { background: #0f172a; padding: 8px 10px; border-radius: 6px; margin: 4px 0; font-size: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .result-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.copy-btn { background: #6366f1; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; }
-.copy-btn:hover { background: #4f46e5; }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
-.stat { background: #1e293b; padding: 10px; border-radius: 8px; text-align: center; }
-.stat-val { font-size: 18px; font-weight: bold; color: #6366f1; }
-.stat-label { font-size: 8px; color: #64748b; text-transform: uppercase; }
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 10px 20px; border-radius: 8px; font-size: 12px; opacity: 0; transition: opacity 0.3s; }
+.result-item { color: #6366f1; }
+.copy-btn { background: #334155; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 9px; }
+.copy-btn:hover { background: #6366f1; }
+.toast { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 8px 16px; border-radius: 8px; font-size: 11px; opacity: 0; transition: 0.3s; z-index: 1000; }
 .toast.show { opacity: 1; }
-.error { background: #7f1d1d; padding: 10px; border-radius: 8px; color: #fca5a5; font-size: 11px; text-align: center; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.error { background: #7f1d1d; padding: 8px; border-radius: 8px; color: #fca5a5; font-size: 10px; text-align: center; margin-bottom: 10px; }
+.page { display: none; }
+.page.active { display: block; }
+.empty { text-align: center; padding: 20px; color: #64748b; font-size: 11px; }
+.footer { padding: 10px; background: #1e293b; display: flex; gap: 5px; }
+.footer .btn { flex: 1; font-size: 10px; padding: 8px; }
+.badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: bold; }
+.badge-cta { background: #6366f1; color: white; }
+.badge-email { background: #14b8a6; color: white; }
+.badge-price { background: #22c55e; color: white; }
+.badge-link { background: #f59e0b; color: white; }
+.badge-social { background: #ec4899; color: white; }
+.progress { height: 4px; background: #334155; border-radius: 2px; margin-top: 5px; }
+.progress-bar { height: 100%; border-radius: 2px; }
 </style>
 </head>
 <body>
@@ -42,41 +60,148 @@ body { width: 350px; min-height: 400px; font-family: Arial, sans-serif; backgrou
 </div>
 
 <div class="stats">
-  <div class="stat"><div class="stat-val" id="statCtas">0</div><div class="stat-label">CTAs</div></div>
-  <div class="stat"><div class="stat-val" id="statEmails">0</div><div class="stat-label">Emails</div></div>
-  <div class="stat"><div class="stat-val" id="statPrices">0</div><div class="stat-label">Prices</div></div>
-  <div class="stat"><div class="stat-val" id="statSeo">0</div><div class="stat-label">SEO</div></div>
+  <div class="stat"><div class="stat-val" id="sCtas">0</div><div class="stat-label">CTAs</div></div>
+  <div class="stat"><div class="stat-val" id="sEmails">0</div><div class="stat-label">Emails</div></div>
+  <div class="stat"><div class="stat-val" id="sPrices">0</div><div class="stat-label">Prices</div></div>
+  <div class="stat"><div class="stat-val" id="sSocial">0</div><div class="stat-label">Social</div></div>
+  <div class="stat"><div class="stat-val" id="sSeo">0</div><div class="stat-label">SEO</div></div>
 </div>
 
 <div id="errorMsg" class="error" style="display:none"></div>
 
-<div class="section">
-  <h3>Quick Actions</h3>
-  <button class="btn btn-blue" id="btnScan">🔍 Full Scan</button>
-  <div class="grid-2">
-    <button class="btn btn-gray" id="btnScanCTA">CTAs</button>
-    <button class="btn btn-gray" id="btnScanEmail">Emails</button>
-    <button class="btn btn-gray" id="btnScanPrice">Prices</button>
-    <button class="btn btn-gray" id="btnAnalyzeSEO">SEO</button>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('scan')">🔍 Scan</div>
+  <div class="tab" onclick="switchTab('cta')">📝 CTAs</div>
+  <div class="tab" onclick="switchTab('email')">📧 Emails</div>
+  <div class="tab" onclick="switchTab('price')">💰 Prices</div>
+  <div class="tab" onclick="switchTab('social')">📱 Social</div>
+  <div class="tab" onclick="switchTab('seo')">📊 SEO</div>
+  <div class="tab" onclick="switchTab('links')">🔗 Links</div>
+</div>
+
+<div class="content">
+  <!-- Scan Page -->
+  <div class="page active" id="page-scan">
+    <div class="section">
+      <h3>🚀 Quick Scan</h3>
+      <button class="btn btn-blue" id="btnScan">🔍 Full Scan All</button>
+      <div class="grid-3">
+        <button class="btn btn-purple" id="btnCTAs">CTAs</button>
+        <button class="btn btn-cyan" id="btnEmails">Emails</button>
+        <button class="btn btn-pink" id="btnPrices">Prices</button>
+      </div>
+    </div>
+    <div class="section">
+      <h3>🔎 More Tools</h3>
+      <div class="grid-2">
+        <button class="btn btn-orange" id="btnSocial">📱 Social</button>
+        <button class="btn btn-green" id="btnSEO">📊 SEO</button>
+        <button class="btn btn-red" id="btnLinks">🔗 Links</button>
+        <button class="btn btn-blue" id="btnMetas">📋 Meta</button>
+      </div>
+    </div>
+    <div class="section">
+      <h3>📄 Export</h3>
+      <button class="btn btn-green" id="btnPDF">📄 Download PDF Report</button>
+      <button class="btn btn-orange" id="btnExport">📥 Export JSON</button>
+      <button class="btn btn-red" id="btnClear">🗑️ Clear All</button>
+    </div>
+  </div>
+
+  <!-- CTAs Page -->
+  <div class="page" id="page-cta">
+    <div class="section">
+      <h3>📝 CTAs Found (<span id="ctaCount">0</span>)</h3>
+      <button class="btn btn-blue" id="btnScanCTA">🔄 Rescan CTAs</button>
+      <button class="btn btn-green" id="btnCopyAllCTA">📋 Copy All CTAs</button>
+    </div>
+    <div id="ctaList"></div>
+  </div>
+
+  <!-- Emails Page -->
+  <div class="page" id="page-email">
+    <div class="section">
+      <h3>📧 Emails Found (<span id="emailCount">0</span>)</h3>
+      <button class="btn btn-blue" id="btnScanEmail">🔄 Rescan Emails</button>
+      <button class="btn btn-green" id="btnCopyAllEmail">📋 Copy All Emails</button>
+    </div>
+    <div id="emailList"></div>
+  </div>
+
+  <!-- Prices Page -->
+  <div class="page" id="page-price">
+    <div class="section">
+      <h3>💰 Prices Found (<span id="priceCount">0</span>)</h3>
+      <button class="btn btn-blue" id="btnScanPrice">🔄 Rescan Prices</button>
+      <div id="priceStats" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:5px 0">
+        <div style="background:#0f172a;padding:8px;border-radius:6px;text-align:center">
+          <div style="color:#f59e0b;font-weight:bold" id="pMin">-</div>
+          <div style="color:#64748b;font-size:8px">MIN</div>
+        </div>
+        <div style="background:#0f172a;padding:8px;border-radius:6px;text-align:center">
+          <div style="color:#22c55e;font-weight:bold" id="pAvg">-</div>
+          <div style="color:#64748b;font-size:8px">AVG</div>
+        </div>
+        <div style="background:#0f172a;padding:8px;border-radius:6px;text-align:center">
+          <div style="color:#ef4444;font-weight:bold" id="pMax">-</div>
+          <div style="color:#64748b;font-size:8px">MAX</div>
+        </div>
+      </div>
+    </div>
+    <div id="priceList"></div>
+  </div>
+
+  <!-- Social Page -->
+  <div class="page" id="page-social">
+    <div class="section">
+      <h3>📱 Social Media (<span id="socialCount">0</span>)</h3>
+      <button class="btn btn-blue" id="btnScanSocial">🔄 Find Social Links</button>
+    </div>
+    <div id="socialList"></div>
+  </div>
+
+  <!-- SEO Page -->
+  <div class="page" id="page-seo">
+    <div class="section">
+      <h3>📊 SEO Analysis</h3>
+      <button class="btn btn-blue" id="btnAnalyzeSEO">🔄 Analyze SEO</button>
+      <div id="seoScore" style="text-align:center;margin:10px 0">
+        <div style="font-size:40px;font-weight:bold" id="seoScoreVal">0</div>
+        <div style="color:#64748b;font-size:10px">SEO Score / 100</div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>📈 SEO Details</h3>
+      <div id="seoDetails"></div>
+    </div>
+    <div class="section" id="keywordsSection" style="display:none">
+      <h3>🔑 Top Keywords</h3>
+      <div id="keywordsList"></div>
+    </div>
+  </div>
+
+  <!-- Links Page -->
+  <div class="page" id="page-links">
+    <div class="section">
+      <h3>🔗 Links Analysis (<span id="linksCount">0</span>)</h3>
+      <div class="grid-2">
+        <button class="btn btn-blue" id="btnScanLinks">🔗 All Links</button>
+        <button class="btn btn-orange" id="btnScanMetas">📋 Meta Tags</button>
+      </div>
+    </div>
+    <div id="linksList"></div>
   </div>
 </div>
 
-<div class="section">
-  <h3>Results</h3>
-  <div id="resultsList">
-    <div class="result"><span class="result-text">Click "Full Scan" to start</span></div>
-  </div>
-</div>
-
-<div class="section">
-  <h3>Export & Tools</h3>
-  <button class="btn btn-green" id="btnExport">📥 Export Report</button>
-  <button class="btn btn-orange" id="btnPDF">📄 PDF Report</button>
-  <button class="btn btn-red" id="btnClear">🗑️ Clear All</button>
+<div class="footer">
+  <button class="btn btn-blue" id="btnScanFooter">🔍 Scan</button>
+  <button class="btn btn-green" id="btnPDFFooter">📄 PDF</button>
+  <button class="btn btn-orange" id="btnExportFooter">📥 Export</button>
 </div>
 
 <div class="toast" id="toast">Done!</div>
 
+<script src="jspdf.min.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>
