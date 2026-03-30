@@ -1,52 +1,38 @@
-# Marketing Command Center v4
+# Marketing Command Center v5
 
-**All-in-one Chrome Extension for Digital Marketers** - No external APIs, everything runs locally!
+All-in-one Chrome Extension for Digital Marketers
 
-## Features (8 Modules)
+## Features
 
-| Module | Description |
-|--------|-------------|
-| **Dashboard** | Overview stats, Full Scan, PDF Report |
-| **CTA Spy** | Find all CTAs, headlines, buttons |
-| **Email Finder** | Extract emails from any page |
-| **SEO Analyzer** | SEO score, keywords, readability |
-| **Price Extractor** | Min/Max/Avg prices |
-| **Social Extractor** | Find social media profiles |
-| **Link Analyzer** | Internal/external links |
-| **Competitor Tracker** | Track page changes |
+- **Full Scan** - Scan all at once
+- **CTA Spy** - Find all CTAs, buttons, headlines
+- **Email Finder** - Extract emails from page
+- **Price Extractor** - Find all prices
+- **SEO Analyzer** - Get SEO score
+- **Export Report** - Download as text file
 
-## PDF Report
-
-Generate detailed marketing reports with one click:
-- SEO Score & Analysis
-- All CTAs Found
-- Emails Found
-- Prices Analysis
-- Social Links
-- Top Keywords
-
-## Installation
+## How to Install
 
 1. Go to `chrome://extensions/`
 2. Enable **Developer mode**
 3. Click **Load unpacked**
-4. Select `marketing-command-center` folder
+4. Select this folder
 
-## Buttons Working Now
+## How to Use
 
-All buttons use direct `onclick` handlers:
-- ✅ Full Scan
-- ✅ Scan CTAs / Emails / Prices / SEO
-- ✅ Copy All
-- ✅ Save CTA
-- ✅ PDF Report
-- ✅ Export Data
-- ✅ Compare Prices
-- ✅ Track Page
-- ✅ Tab Navigation
+1. Open any website (e.g., amazon.com)
+2. Click extension icon
+3. Click **Full Scan**
+4. Click **Copy** on any result
 
-## Privacy
+## Important
 
-- No external APIs
-- All data stored locally
-- No tracking
+- Works only on regular websites
+- Does NOT work on chrome:// pages
+
+## Version 5 Changes
+
+- Completely rebuilt from scratch
+- All buttons use direct onclick handlers
+- Much simpler code
+- Better error handling
