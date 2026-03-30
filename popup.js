@@ -120,13 +120,30 @@ function renderAll() {
 // ========== SCANNING FUNCTIONS ==========
 
 async function scanAll() {
+  // Refresh current tab
+  try {
+    var tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTab = tabs[0];
+  } catch(e) {}
+  
   if (!currentTab || !currentTab.id) {
     showToast('Cannot scan this page');
     return;
   }
+  
+  // Check if URL is valid
+  if (!currentTab.url || currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('about:') || currentTab.url.startsWith('file://')) {
+    showToast('Open a website first (not chrome://)');
+    return;
+  }
+  
   showToast('Scanning...');
   try {
     var results = await sendMessage({ action: 'fullScan' });
+    if (!results || results.error) {
+      showToast('Reload the page and try again');
+      return;
+    }
     scanData.ctas = results.ctas || [];
     scanData.emails = results.emails || [];
     scanData.prices = results.prices || [];
@@ -135,13 +152,24 @@ async function scanAll() {
     scanData.links = results.links || [];
     await saveData();
     renderAll();
-    showToast('Found ' + scanData.ctas.length + ' CTAs, ' + scanData.emails.length + ' emails');
+    showToast('Done! ' + scanData.ctas.length + ' CTAs, ' + scanData.emails.length + ' emails');
   } catch(e) {
-    showToast('Scan failed. Reload page.');
+    showToast('Error: ' + (e.message || 'Reload page'));
   }
 }
 
 async function scanCTAs() {
+  // Refresh tab
+  try {
+    var tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTab = tabs[0];
+  } catch(e) {}
+  
+  if (!currentTab || !currentTab.url || currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('about:')) {
+    showToast('Open a website first');
+    return;
+  }
+  
   showToast('Scanning CTAs...');
   try {
     var results = await sendMessage({ action: 'scanCTAs' });
@@ -151,11 +179,21 @@ async function scanCTAs() {
     updateStats();
     showToast('Found ' + scanData.ctas.length + ' CTAs');
   } catch(e) {
-    showToast('Scan failed');
+    showToast('Reload page and try again');
   }
 }
 
 async function scanEmails() {
+  try {
+    var tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTab = tabs[0];
+  } catch(e) {}
+  
+  if (!currentTab || !currentTab.url || currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('about:')) {
+    showToast('Open a website first');
+    return;
+  }
+  
   showToast('Finding emails...');
   try {
     var results = await sendMessage({ action: 'scanEmails' });
@@ -165,11 +203,21 @@ async function scanEmails() {
     updateStats();
     showToast('Found ' + scanData.emails.length + ' emails');
   } catch(e) {
-    showToast('Scan failed');
+    showToast('Reload page and try again');
   }
 }
 
 async function scanPrices() {
+  try {
+    var tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTab = tabs[0];
+  } catch(e) {}
+  
+  if (!currentTab || !currentTab.url || currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('about:')) {
+    showToast('Open a website first');
+    return;
+  }
+  
   showToast('Extracting prices...');
   try {
     var results = await sendMessage({ action: 'scanPrices' });
@@ -179,11 +227,21 @@ async function scanPrices() {
     updateStats();
     showToast('Found ' + scanData.prices.length + ' prices');
   } catch(e) {
-    showToast('Scan failed');
+    showToast('Reload page and try again');
   }
 }
 
 async function analyzeSEO() {
+  try {
+    var tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTab = tabs[0];
+  } catch(e) {}
+  
+  if (!currentTab || !currentTab.url || currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('about:')) {
+    showToast('Open a website first');
+    return;
+  }
+  
   showToast('Analyzing SEO...');
   try {
     var results = await sendMessage({ action: 'analyzeSEO' });
@@ -193,11 +251,21 @@ async function analyzeSEO() {
     updateStats();
     showToast('SEO Score: ' + calcSEOScore(scanData.seo));
   } catch(e) {
-    showToast('Analysis failed');
+    showToast('Reload page and try again');
   }
 }
 
 async function extractSocial() {
+  try {
+    var tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTab = tabs[0];
+  } catch(e) {}
+  
+  if (!currentTab || !currentTab.url || currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('about:')) {
+    showToast('Open a website first');
+    return;
+  }
+  
   showToast('Extracting social links...');
   try {
     var results = await sendMessage({ action: 'extractSocial' });
@@ -206,11 +274,21 @@ async function extractSocial() {
     renderSocialList();
     showToast('Found ' + scanData.social.length + ' social links');
   } catch(e) {
-    showToast('Extraction failed');
+    showToast('Reload page and try again');
   }
 }
 
 async function analyzeLinks() {
+  try {
+    var tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTab = tabs[0];
+  } catch(e) {}
+  
+  if (!currentTab || !currentTab.url || currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('about:')) {
+    showToast('Open a website first');
+    return;
+  }
+  
   showToast('Analyzing links...');
   try {
     var results = await sendMessage({ action: 'analyzeLinks' });
@@ -219,11 +297,21 @@ async function analyzeLinks() {
     renderLinksList();
     showToast('Found ' + scanData.links.length + ' links');
   } catch(e) {
-    showToast('Analysis failed');
+    showToast('Reload page and try again');
   }
 }
 
 async function getMetas() {
+  try {
+    var tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTab = tabs[0];
+  } catch(e) {}
+  
+  if (!currentTab || !currentTab.url || currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('about:')) {
+    showToast('Open a website first');
+    return;
+  }
+  
   showToast('Getting meta tags...');
   try {
     var results = await sendMessage({ action: 'getMetas' });
@@ -232,7 +320,7 @@ async function getMetas() {
     renderLinksList();
     showToast('Found ' + scanData.metas.length + ' meta tags');
   } catch(e) {
-    showToast('Failed');
+    showToast('Reload page and try again');
   }
 }
 
@@ -243,6 +331,13 @@ function sendMessage(msg) {
       reject(new Error('No tab'));
       return;
     }
+    
+    // Check if URL is accessible
+    if (!currentTab.url || currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('about:')) {
+      reject(new Error('Cannot scan this page. Try a website like amazon.com'));
+      return;
+    }
+    
     chrome.tabs.sendMessage(currentTab.id, msg, function(response) {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError);
