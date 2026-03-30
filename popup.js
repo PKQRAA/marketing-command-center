@@ -469,136 +469,229 @@ function openURL(url) {
 
 // Generate PDF Report
 function generatePDF() {
-  var jsPDF = window.jspdf.jsPDF;
-  var doc = new jsPDF();
-  
-  var y = 10;
-  var pageWidth = doc.internal.pageSize.getWidth();
-  
-  // Title
-  doc.setFontSize(20);
-  doc.setTextColor(99, 102, 241);
-  doc.text('Marketing Command Center', pageWidth/2, y, { align: 'center' });
-  y += 10;
-  
-  // Subtitle
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text('Scan Report - ' + new Date().toLocaleDateString(), pageWidth/2, y, { align: 'center' });
-  y += 10;
-  
-  // URL
-  doc.setFontSize(8);
-  doc.text('URL: ' + (currentTab ? currentTab.url : 'N/A'), 10, y);
-  y += 10;
-  
-  // Divider
-  doc.setDrawColor(200);
-  doc.line(10, y, pageWidth-10, y);
-  y += 8;
-  
-  // SEO Score
-  doc.setFontSize(14);
-  doc.setTextColor(0);
-  doc.text('SEO Score: ' + calcSEOScore() + '/100', 10, y);
-  y += 8;
-  
-  // SEO Details
-  if (data.seo.title) {
-    doc.setFontSize(10);
-    doc.text('Title: ' + data.seo.title.substring(0, 60), 10, y);
-    y += 5;
-  }
-  if (data.seo.metaDesc) {
-    doc.text('Meta: ' + data.seo.metaDesc.substring(0, 80), 10, y);
-    y += 5;
-  }
-  y += 5;
-  
-  // Divider
-  doc.line(10, y, pageWidth-10, y);
-  y += 8;
-  
-  // CTAs
-  doc.setFontSize(14);
-  doc.setTextColor(99, 102, 241);
-  doc.text('CTAs Found: ' + data.ctas.length, 10, y);
-  y += 6;
-  
-  doc.setFontSize(8);
-  doc.setTextColor(0);
-  for (var i = 0; i < Math.min(data.ctas.length, 20); i++) {
-    if (y > 270) { doc.addPage(); y = 10; }
-    doc.text('• ' + data.ctas[i].text.substring(0, 70), 12, y);
-    y += 4;
-  }
-  y += 5;
-  
-  // Emails
-  if (y > 250) { doc.addPage(); y = 10; }
-  doc.setFontSize(14);
-  doc.setTextColor(20, 184, 166);
-  doc.text('Emails Found: ' + data.emails.length, 10, y);
-  y += 6;
-  
-  doc.setFontSize(8);
-  doc.setTextColor(0);
-  for (var j = 0; j < Math.min(data.emails.length, 15); j++) {
-    if (y > 270) { doc.addPage(); y = 10; }
-    doc.text('• ' + data.emails[j].address, 12, y);
-    y += 4;
-  }
-  y += 5;
-  
-  // Prices
-  if (y > 250) { doc.addPage(); y = 10; }
-  doc.setFontSize(14);
-  doc.setTextColor(34, 197, 94);
-  doc.text('Prices Found: ' + data.prices.length, 10, y);
-  y += 6;
-  
-  if (data.prices.length > 0) {
-    var vals = data.prices.map(function(p) { return p.value; });
-    doc.setFontSize(9);
-    doc.text('Min: $' + Math.min.apply(null, vals).toFixed(2) + ' | Max: $' + Math.max.apply(null, vals).toFixed(2) + ' | Avg: $' + (vals.reduce(function(a,b){return a+b;},0)/vals.length).toFixed(2), 12, y);
-    y += 5;
+  try {
+    // Create simple PDF
+    var pdf = new SimplePDF();
     
-    doc.setFontSize(8);
-    for (var k = 0; k < Math.min(data.prices.length, 10); k++) {
-      if (y > 270) { doc.addPage(); y = 10; }
-      doc.text('• ' + data.prices[k].raw, 12, y);
-      y += 4;
+    pdf.addTitle('Marketing Command Center');
+    pdf.addSubtitle('Scan Report - ' + new Date().toLocaleDateString());
+    pdf.addText('URL: ' + (currentTab ? currentTab.url : 'N/A'), 8);
+    pdf.addLine();
+    
+    // SEO Section
+    pdf.addHeader('SEO Analysis', 14, [99, 102, 241]);
+    pdf.addText('SEO Score: ' + calcSEOScore() + '/100', 11);
+    if (data.seo && data.seo.title) {
+      pdf.addText('Title: ' + cleanForPDF(data.seo.title.substring(0, 60)), 10);
     }
+    if (data.seo && data.seo.metaDesc) {
+      pdf.addText('Meta: ' + cleanForPDF(data.seo.metaDesc.substring(0, 80)), 10);
+    }
+    if (data.seo && data.seo.wordCount) {
+      pdf.addText('Words: ' + data.seo.wordCount, 10);
+    }
+    pdf.addLine();
+    
+    // CTAs Section
+    pdf.addHeader('CTAs Found: ' + data.ctas.length, 14, [99, 102, 241]);
+    for (var i = 0; i < Math.min(data.ctas.length, 30); i++) {
+      pdf.addText((i + 1) + '. ' + cleanForPDF(data.ctas[i].text.substring(0, 80)), 9);
+    }
+    pdf.addSpace();
+    
+    // Emails Section
+    pdf.addHeader('Emails Found: ' + data.emails.length, 14, [20, 184, 166]);
+    for (var j = 0; j < Math.min(data.emails.length, 20); j++) {
+      pdf.addText(data.emails[j].address, 9);
+    }
+    pdf.addSpace();
+    
+    // Prices Section
+    pdf.addHeader('Prices Found: ' + data.prices.length, 14, [34, 197, 94]);
+    if (data.prices.length > 0) {
+      var vals = data.prices.map(function(p) { return p.value; });
+      pdf.addText('Range: $' + Math.min.apply(null, vals).toFixed(2) + ' - $' + Math.max.apply(null, vals).toFixed(2), 10);
+      pdf.addText('Average: $' + (vals.reduce(function(a, b) { return a + b; }, 0) / vals.length).toFixed(2), 10);
+      for (var k = 0; k < Math.min(data.prices.length, 15); k++) {
+        pdf.addText(data.prices[k].raw, 9);
+      }
+    }
+    pdf.addSpace();
+    
+    // Social Section
+    pdf.addHeader('Social Links: ' + data.social.length, 14, [236, 72, 153]);
+    for (var m = 0; m < Math.min(data.social.length, 15); m++) {
+      pdf.addText(data.social[m].platform + ': ' + data.social[m].url.substring(0, 60), 9);
+    }
+    
+    // Footer
+    pdf.addFooter('Generated by Marketing Command Center');
+    
+    // Download
+    var filename = 'marketing-report-' + new Date().toISOString().split('T')[0] + '.pdf';
+    pdf.save(filename);
+    showToast('PDF Report Downloaded!');
+  } catch (e) {
+    showError('PDF Error');
+    exportData();
   }
-  y += 5;
+}
+
+// Simple PDF Generator Class
+function SimplePDF() {
+  this.content = [];
+  this.y = 20;
+  this.lineHeight = 6;
+  this.pageHeight = 280;
+  this.pageWidth = 180;
+  this.pageNum = 1;
   
-  // Social Links
-  if (y > 240) { doc.addPage(); y = 10; }
-  doc.setFontSize(14);
-  doc.setTextColor(236, 72, 153);
-  doc.text('Social Links: ' + data.social.length, 10, y);
-  y += 6;
+  this.addTitle = function(text) {
+    this.content.push({ type: 'title', text: text, y: this.y });
+    this.y += 10;
+  };
   
-  doc.setFontSize(8);
-  doc.setTextColor(0);
-  for (var m = 0; m < Math.min(data.social.length, 10); m++) {
-    if (y > 270) { doc.addPage(); y = 10; }
-    doc.text('• ' + data.social[m].platform + ': ' + data.social[m].url.substring(0, 50), 12, y);
-    y += 4;
-  }
+  this.addSubtitle = function(text) {
+    this.content.push({ type: 'subtitle', text: text, y: this.y });
+    this.y += 6;
+  };
   
-  // Footer
-  var pageCount = doc.internal.getNumberOfPages();
-  for (var p = 1; p <= pageCount; p++) {
-    doc.setPage(p);
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text('Page ' + p + ' of ' + pageCount + ' | Generated by Marketing Command Center', pageWidth/2, 290, { align: 'center' });
-  }
+  this.addHeader = function(text, size, color) {
+    this.checkPage();
+    this.content.push({ type: 'header', text: text, size: size, color: color, y: this.y });
+    this.y += 8;
+  };
   
-  // Save
-  doc.save('marketing-report-' + new Date().toISOString().split('T')[0] + '.pdf');
-  showToast('PDF Report Downloaded!');
+  this.addText = function(text, size) {
+    this.checkPage();
+    this.content.push({ type: 'text', text: text, size: size || 10, y: this.y });
+    this.y += this.lineHeight;
+  };
+  
+  this.addLine = function() {
+    this.content.push({ type: 'line', y: this.y });
+    this.y += 6;
+  };
+  
+  this.addSpace = function() {
+    this.y += 8;
+  };
+  
+  this.addFooter = function(text) {
+    this.content.push({ type: 'footer', text: text });
+  };
+  
+  this.checkPage = function() {
+    if (this.y > this.pageHeight) {
+      this.pageNum++;
+      this.y = 20;
+    }
+  };
+  
+  this.save = function(filename) {
+    var pdfContent = this.generatePDF();
+    var blob = new Blob([pdfContent], { type: 'application/pdf' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+  
+  this.generatePDF = function() {
+    var lines = [];
+    var date = new Date().toISOString().split('T')[0];
+    
+    // Simple PDF header
+    lines.push('%PDF-1.4');
+    lines.push('1 0 obj');
+    lines.push('<< /Type /Catalog /Pages 2 0 R >>');
+    lines.push('endobj');
+    lines.push('2 0 obj');
+    lines.push('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+    lines.push('endobj');
+    
+    // Content stream
+    var stream = 'BT\n';
+    stream += '/F1 12 Tf\n';
+    
+    var yPos = 270;
+    var xPos = 20;
+    
+    stream += '15 ' + yPos + ' Td\n';
+    stream += '(Marketing Command Center - Report ' + date + ') Tj\n';
+    yPos -= 15;
+    
+    stream += '/F1 10 Tf\n';
+    stream += '15 ' + yPos + ' Td\n';
+    stream += '(URL: ' + cleanForPDF(currentTab ? currentTab.url.substring(0, 60) : 'N/A') + ') Tj\n';
+    yPos -= 10;
+    
+    stream += '15 ' + yPos + ' Td\n';
+    stream += '(SEO Score: ' + calcSEOScore() + '/100) Tj\n';
+    yPos -= 10;
+    
+    stream += '(CTAs: ' + data.ctas.length + ' | Emails: ' + data.emails.length + ' | Prices: ' + data.prices.length + ') Tj\n';
+    yPos -= 15;
+    
+    stream += '/F1 9 Tf\n';
+    stream += '15 ' + yPos + ' Td\n';
+    stream += '(Top CTAs:) Tj\n';
+    yPos -= 7;
+    
+    for (var i = 0; i < Math.min(data.ctas.length, 15); i++) {
+      if (yPos < 30) break;
+      stream += '15 ' + yPos + ' Td\n';
+      stream += '(' + (i + 1) + '. ' + cleanForPDF(data.ctas[i].text.substring(0, 50)) + ') Tj\n';
+      yPos -= 6;
+    }
+    
+    stream += 'ET';
+    
+    var streamLength = stream.length;
+    
+    lines.push('3 0 obj');
+    lines.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 300] >>');
+    lines.push('endobj');
+    lines.push('4 0 obj');
+    lines.push('<< /Length ' + streamLength + ' >>');
+    lines.push('stream');
+    lines.push(stream);
+    lines.push('endstream');
+    lines.push('endobj');
+    lines.push('5 0 obj');
+    lines.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+    lines.push('endobj');
+    lines.push('xref');
+    lines.push('0 6');
+    lines.push('0000000000 65535 f');
+    lines.push('0000000009 00000 n');
+    lines.push('0000000058 00000 n');
+    lines.push('0000000115 00000 n');
+    lines.push('0000000270 00000 n');
+    lines.push('0000000358 00000 n');
+    lines.push('trailer');
+    lines.push('<< /Size 6 /Root 1 0 R >>');
+    lines.push('startxref');
+    lines.push(String(streamLength + 450));
+    lines.push('%%EOF');
+    
+    return lines.join('\n');
+  };
+}
+
+// Clean text for PDF
+function cleanForPDF(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/[^\x20-\x7E]/g, '')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+    .replace(/\\/g, '\\\\')
+    .substring(0, 100);
 }
 
 // Export JSON
